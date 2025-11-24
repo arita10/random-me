@@ -1,38 +1,978 @@
+/* ============================================
+   GENERAL STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .App {
   text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  color: white;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+h1 {
+  font-size: 3rem;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* ============================================
+   TAB NAVIGATION
+   ============================================ */
+
+.tab-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s;
+}
+
+/* ============================================
+   WHEEL STYLES
+   ============================================ */
+
+.wheel-container {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto 30px;
+}
+
+.pointer-container {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pointer-arrow {
+  font-size: 55px;
+  color: #FFD700;
+  filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.8));
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.6),
+    0 0 30px rgba(255, 215, 0, 0.4);
+  animation: pointerPulse 1.5s ease-in-out infinite;
+}
+
+.pointer-line {
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(to bottom, #FFD700, transparent);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  margin-top: -10px;
+}
+
+@keyframes pointerPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.8));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(3px 3px 12px rgba(0, 0, 0, 0.9));
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.wheel-segment {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  top: 0;
+  left: 50%;
+  transform-origin: 0% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 10px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transition: background-color 0.3s;
+}
+
+.wheel-segment:hover {
+  filter: brightness(1.1);
+}
+
+.wheel-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wheel-center {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #667eea;
+  font-size: 14px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+/* ============================================
+   DICE STYLES
+   ============================================ */
+
+.dice-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  margin-bottom: 30px;
+}
+
+.dice {
+  width: 200px;
+  height: 200px;
+  background: white;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 120px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
+}
+
+.dice.rolling {
+  animation: diceRoll 0.1s infinite;
+}
+
+@keyframes diceRoll {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  75% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+}
+
+/* ============================================
+   CARDS GRID STYLES
+   ============================================ */
+
+.cards-grid-container {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 20px;
+}
+
+.cards-instruction {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Flip Card Container */
+.flip-card {
+  background-color: transparent;
+  width: 100%;
+  height: 200px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card.maxed-out {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Front (Back design) */
+.flip-card-front {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-back-design {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  position: relative;
+}
+
+.card-pattern {
+  font-size: 60px;
+  opacity: 0.3;
+  animation: cardFloat 3s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.card-number {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  font-weight: bold;
   color: white;
+  background: rgba(0, 0, 0, 0.3);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.App-link {
-  color: #61dafb;
+/* Card Back (Answer) */
+.flip-card-back {
+  background: white;
+  color: #333;
+  transform: rotateY(180deg);
+  flex-direction: column;
+  padding: 20px;
 }
 
-@keyframes App-logo-spin {
+.card-answer {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.card-selection-count {
+  font-size: 14px;
+  color: #666;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 5px 15px;
+  border-radius: 20px;
+}
+
+/* Hover effect for non-flipped, non-maxed cards */
+.flip-card:not(.flipped):not(.maxed-out):hover .flip-card-inner {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+.spin-button {
+  padding: 15px 40px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.spin-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.spin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   RESULT DISPLAY
+   ============================================ */
+
+.result {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px auto;
+  max-width: 500px;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.5s;
+}
+
+.result h2 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(-20px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   AUTHENTICATION & SAVE/LOAD SECTION
+   ============================================ */
+
+.auth-section {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 600px;
+  margin: 30px auto;
+  backdrop-filter: blur(10px);
+}
+
+.auth-container {
+  text-align: center;
+}
+
+.google-signin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin: 20px auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.google-signin-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.google-icon {
+  font-size: 1.2rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid white;
+}
+
+.user-details {
+  text-align: left;
+  flex: 1;
+}
+
+.user-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.user-email {
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.signout-button {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.signout-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.save-wheel-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.save-wheel-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.save-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.wheel-name-input {
+  flex: 1;
+  max-width: 300px;
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.wheel-name-input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+}
+
+.save-button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #4ecdc4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.save-button:hover {
+  background: #45b7af;
+  transform: translateY(-2px);
+}
+
+.saved-wheels-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.saved-wheels-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.saved-wheels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saved-wheel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.saved-wheel-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.saved-wheel-name {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.saved-wheel-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.load-button {
+  padding: 8px 20px;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.load-button:hover {
+  background: #e67e22;
+  transform: scale(1.05);
+}
+
+.delete-saved-button {
+  padding: 8px 12px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-saved-button:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   OPTIONS MANAGER SECTION
+   ============================================ */
+
+.options-manager {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  max-width: 600px;
+  margin: 30px auto;
+  backdrop-filter: blur(10px);
+}
+
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.options-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  flex: 1;
+  text-align: left;
+}
+
+.toggle-list-button {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.toggle-list-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.add-option-container {
+  margin-bottom: 20px;
+}
+
+.add-option {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.add-option input[type="text"] {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.max-selections-input {
+  width: 100px;
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.max-selections-input:disabled {
+  background: rgba(200, 200, 200, 0.5);
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.add-option input:focus {
+  outline: none;
+  border-color: #f5576c;
+}
+
+.limit-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.limit-checkbox label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  gap: 8px;
+}
+
+.limit-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #4ecdc4;
+}
+
+.limit-checkbox span {
+  user-select: none;
+}
+
+.add-option button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #4ecdc4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.add-option button:hover {
+  background: #45b7af;
+  transform: translateY(-2px);
+}
+
+.reset-button {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.reset-button:hover {
+  background: #e67e22;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   OPTIONS LIST
+   ============================================ */
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  gap: 10px;
+}
+
+.option-item:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateX(5px);
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  gap: 4px;
+}
+
+.option-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.option-counter {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: normal;
+}
+
+.delete-button {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.delete-button:hover {
+  background: #ff5252;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .cards-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .tab-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+
+  .wheel-container {
+    width: 300px;
+    height: 300px;
+  }
+
+  .pointer-arrow {
+    font-size: 45px;
+  }
+
+  .pointer-line {
+    width: 3px;
+    height: 15px;
+  }
+
+  .wheel-text {
+    font-size: 12px;
+  }
+
+  .dice {
+    width: 150px;
+    height: 150px;
+    font-size: 90px;
+  }
+
+  .spin-button {
+    font-size: 1.2rem;
+    padding: 12px 30px;
+  }
+
+  .options-manager {
+    padding: 20px;
+  }
+  
+  .options-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .options-header h3 {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .toggle-list-button {
+    width: 100%;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+  
+  .flip-card {
+    height: 160px;
+  }
+  
+  .card-pattern {
+    font-size: 40px;
+  }
+  
+  .card-number {
+    font-size: 18px;
+    width: 30px;
+    height: 30px;
+  }
+  
+  .card-answer {
+    font-size: 18px;
+  }
+  
+  .cards-instruction {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .flip-card {
+    height: 140px;
+  }
+  
+  .card-answer {
+    font-size: 16px;
   }
 }

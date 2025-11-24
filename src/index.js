@@ -15,3 +15,8 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+
+// This is the entry point of our React application
+// It tells React where to render our app in the HTML
+
