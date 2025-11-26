@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, addDoc, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -27,6 +27,14 @@ export const googleProvider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    
+    // Log the sign-in event
+    await logUserActivity(result.user.uid, 'login', {
+      email: result.user.email,
+      displayName: result.user.displayName,
+      photoURL: result.user.photoURL
+    });
+    
     return result.user;
   } catch (error) {
     console.error("Error signing in with Google:", error);
@@ -105,6 +113,103 @@ export const deleteWheel = async (userId, wheelName) => {
     await deleteDoc(wheelRef);
   } catch (error) {
     console.error("Error deleting wheel:", error);
+    throw error;
+  }
+};
+
+// ============================================
+// ADMIN TRACKING FUNCTIONS
+// ============================================
+
+// Log user activity (visits, logins, actions)
+export const logUserActivity = async (userId, activityType, additionalData = {}) => {
+  try {
+    const activityRef = collection(db, 'analytics', 'userActivity', 'logs');
+    await addDoc(activityRef, {
+      userId: userId,
+      activityType: activityType, // 'visit', 'login', 'logout', 'spin', etc.
+      timestamp: serverTimestamp(),
+      ...additionalData
+    });
+  } catch (error) {
+    console.error("Error logging user activity:", error);
+  }
+};
+
+// Log page visit (can be called when app loads)
+export const logPageVisit = async (userId = 'anonymous', pageData = {}) => {
+  try {
+    const visitRef = collection(db, 'analytics', 'visits', 'logs');
+    await addDoc(visitRef, {
+      userId: userId,
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+      ...pageData
+    });
+  } catch (error) {
+    console.error("Error logging page visit:", error);
+  }
+};
+
+// Get analytics data (admin only)
+export const getAnalytics = async () => {
+  try {
+    const activityRef = collection(db, 'analytics', 'userActivity', 'logs');
+    const q = query(activityRef, orderBy('timestamp', 'desc'), limit(100));
+    const snapshot = await getDocs(q);
+    
+    const activities = [];
+    snapshot.forEach((doc) => {
+      activities.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return activities;
+  } catch (error) {
+    console.error("Error getting analytics:", error);
+    throw error;
+  }
+};
+
+// Get all visits
+export const getVisits = async () => {
+  try {
+    const visitRef = collection(db, 'analytics', 'visits', 'logs');
+    const q = query(visitRef, orderBy('timestamp', 'desc'), limit(100));
+    const snapshot = await getDocs(q);
+    
+    const visits = [];
+    snapshot.forEach((doc) => {
+      visits.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    return visits;
+  } catch (error) {
+    console.error("Error getting visits:", error);
+    throw error;
+  }
+};
+
+// Get user statistics
+export const getUserStats = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
+    
+    return {
+      totalUsers: usersSnapshot.size,
+      users: usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    };
+  } catch (error) {
+    console.error("Error getting user stats:", error);
     throw error;
   }
 };

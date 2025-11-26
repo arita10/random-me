@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { auth, signInWithGoogle, signOutUser, saveWheel, loadWheel, getUserWheels, deleteWheel } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import AdminPanel from './AdminPanel';
+import { logPageVisit } from './firebase'
+
 
 function App() {
   // ============================================
@@ -12,6 +15,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [savedWheels, setSavedWheels] = useState([]);
   const [wheelName, setWheelName] = useState('My Wheel');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -25,6 +29,11 @@ function App() {
     
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    // Log page visit when app loads
+    logPageVisit(user ? user.uid : 'anonymous');
+  }, [user]);
   
   const loadUserWheels = async (userId) => {
     try {
@@ -105,7 +114,7 @@ function App() {
   // TAB STATE
   // ============================================
   
-  const [activeTab, setActiveTab] = useState('wheel'); // 'wheel', 'dice', 'cards'
+  const [activeTab, setActiveTab] = useState('wheel');
   
   // ============================================
   // WHEEL STATE
@@ -123,7 +132,7 @@ function App() {
   ]);
 
   const [newOption, setNewOption] = useState('');
-  const [maxSelections, setMaxSelections] = useState(3);
+  const [maxSelections, setMaxSelections] = useState(1);
   const [isLimitEnabled, setIsLimitEnabled] = useState(true);
   const [showOptionsOnWheel, setShowOptionsOnWheel] = useState(true);
   const [showOptionsList, setShowOptionsList] = useState(true);
@@ -145,7 +154,7 @@ function App() {
   ]);
   
   const [newDiceOption, setNewDiceOption] = useState('');
-  const [diceMaxSelections, setDiceMaxSelections] = useState(3);
+  const [diceMaxSelections, setDiceMaxSelections] = useState(1);
   const [isDiceLimitEnabled, setIsDiceLimitEnabled] = useState(true);
   const [showDiceList, setShowDiceList] = useState(true);
   const [isRolling, setIsRolling] = useState(false);
@@ -167,15 +176,29 @@ function App() {
   ]);
   
   const [newCardOption, setNewCardOption] = useState('');
-  const [cardMaxSelections, setCardMaxSelections] = useState(3);
+  const [cardMaxSelections, setCardMaxSelections] = useState(1);
   const [isCardLimitEnabled, setIsCardLimitEnabled] = useState(true);
   const [showCardList, setShowCardList] = useState(true);
-  const [flippedCards, setFlippedCards] = useState([]); // Array of flipped card indices
+  const [flippedCards, setFlippedCards] = useState([]);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+
+  // SWIPE STATE FOR CARDS
+  const [swipeStart, setSwipeStart] = useState({ x: 0, y: 0 });
+  const [swipeEnd, setSwipeEnd] = useState({ x: 0, y: 0 });
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [swipingCardIndex, setSwipingCardIndex] = useState(null);
 
   // ============================================
   // WHEEL FUNCTIONS
   // ============================================
+
+  const handleDeleteAllOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL options? This cannot be undone!');
+    if (!confirmDelete) return;
+    
+    setOptions([]);
+    setSelectedOption(null);
+  };
 
   const handleAddOption = () => {
     if (newOption.trim() !== '') {
@@ -202,8 +225,7 @@ function App() {
     setOptions(resetOptions);
     setSelectedOption(null);
   };
-
-  const spinWheel = () => {
+ const spinWheel = () => {
     if (isSpinning || options.length === 0) return;
 
     const availableOptions = options.filter(opt => opt.timesSelected < opt.maxSelections);
@@ -264,9 +286,18 @@ function App() {
     }, 4000);
   };
 
+
   // ============================================
   // DICE FUNCTIONS
   // ============================================
+
+  const handleDeleteAllDiceOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL dice options? This cannot be undone!');
+    if (!confirmDelete) return;
+    
+    setDiceOptions([]);
+    setDiceResult(null);
+  };
 
   const handleAddDiceOption = () => {
     if (newDiceOption.trim() !== '') {
@@ -341,6 +372,15 @@ function App() {
   // CARD FUNCTIONS
   // ============================================
 
+  const handleDeleteAllCardOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL card options? This cannot be undone!');
+    if (!confirmDelete) return;
+    
+    setCardOptions([]);
+    setFlippedCards([]);
+    setSelectedCardIndex(null);
+  };
+
   const handleAddCardOption = () => {
     if (newCardOption.trim() !== '') {
       const newCardOptionObj = {
@@ -356,7 +396,6 @@ function App() {
   const handleRemoveCardOption = (indexToRemove) => {
     const updatedOptions = cardOptions.filter((_, index) => index !== indexToRemove);
     setCardOptions(updatedOptions);
-    // Also remove from flipped cards if it was flipped
     setFlippedCards(flippedCards.filter(idx => idx !== indexToRemove));
   };
 
@@ -370,25 +409,76 @@ function App() {
     setSelectedCardIndex(null);
   };
 
+  const handleShuffleCards = () => {
+  // สุ่มตำแหน่งการ์ดใหม่
+  const shuffled = [...cardOptions].sort(() => Math.random() - 0.5);
+  setCardOptions(shuffled);
+  // รีเซ็ตการ์ดที่พลิกด้วย
+  setFlippedCards([]);
+  setSelectedCardIndex(null);
+};
+  // ============================================
+  // CARD SWIPE FUNCTIONS
+  // ============================================
+
+  const handleSwipeStart = (e, index) => {
+    const card = cardOptions[index];
+    
+    if (card.timesSelected >= card.maxSelections) {
+      return;
+    }
+    
+    if (flippedCards.includes(index)) {
+      return;
+    }
+    
+    const touch = e.touches ? e.touches[0] : e;
+    setSwipeStart({ x: touch.clientX, y: touch.clientY });
+    setIsSwiping(true);
+    setSwipingCardIndex(index);
+  };
+
+  const handleSwipeMove = (e, index) => {
+    if (!isSwiping || swipingCardIndex !== index) return;
+    
+    const touch = e.touches ? e.touches[0] : e;
+    setSwipeEnd({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleSwipeEnd = (e, index) => {
+    if (!isSwiping || swipingCardIndex !== index) return;
+    
+    const deltaX = swipeEnd.x - swipeStart.x;
+    const deltaY = swipeEnd.y - swipeStart.y;
+    const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    const minSwipeDistance = 50;
+    
+    if (swipeDistance > minSwipeDistance) {
+      handleCardClick(index);
+    }
+    
+    setIsSwiping(false);
+    setSwipingCardIndex(null);
+    setSwipeStart({ x: 0, y: 0 });
+    setSwipeEnd({ x: 0, y: 0 });
+  };
+
   const handleCardClick = (index) => {
     const card = cardOptions[index];
     
-    // Check if card is already maxed out
     if (card.timesSelected >= card.maxSelections) {
       alert('This card has been selected the maximum number of times!');
       return;
     }
     
-    // Check if card is already flipped
     if (flippedCards.includes(index)) {
-      return; // Already flipped, do nothing
+      return;
     }
     
-    // Flip the card
     setFlippedCards([...flippedCards, index]);
     setSelectedCardIndex(index);
     
-    // Update selection count
     const updatedOptions = cardOptions.map((opt, idx) => {
       if (idx === index && opt.timesSelected < opt.maxSelections) {
         return {
@@ -450,6 +540,18 @@ function App() {
             >
               {options.map((option, index) => {
                 const angle = (360 / options.length) * index;
+                const rainbowColors = [
+                  'linear-gradient(135deg, #FF0080 0%, #FF0000 100%)',
+                  'linear-gradient(135deg, #FF4500 0%, #FF8C00 100%)',
+                  'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  'linear-gradient(135deg, #00FF00 0%, #32CD32 100%)',
+                  'linear-gradient(135deg, #00CED1 0%, #1E90FF 100%)',
+                  'linear-gradient(135deg, #4169E1 0%, #0000FF 100%)',
+                  'linear-gradient(135deg, #8A2BE2 0%, #9400D3 100%)',
+                  'linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)',
+                ];
+                
+                const background = rainbowColors[index % rainbowColors.length];
                 
                 return (
                   <div
@@ -457,7 +559,7 @@ function App() {
                     className="wheel-segment"
                     style={{
                       transform: `rotate(${angle}deg)`,
-                      backgroundColor: index % 2 === 0 ? '#ff6b6b' : '#4ecdc4',
+                      background: background,
                       opacity: 1
                     }}
                   >
@@ -539,6 +641,10 @@ function App() {
 
                 <button onClick={handleResetCounts} className="reset-button">
                   🔄 Reset All Counts
+                </button>
+
+                <button onClick={handleDeleteAllOptions} className="delete-all-button">
+                  🗑️ Delete All Choices
                 </button>
 
                 <div className="options-list">
@@ -641,6 +747,10 @@ function App() {
                 <button onClick={handleResetDiceCounts} className="reset-button">
                   🔄 Reset All Counts
                 </button>
+                
+                <button onClick={handleDeleteAllDiceOptions} className="delete-all-button">
+                  🗑️ Delete All Choices
+                </button>
 
                 <div className="options-list">
                   {diceOptions.map((option, index) => {
@@ -669,21 +779,32 @@ function App() {
         </div>
       )}
 
-      {/* CARDS TAB */}
+      {/* CARDS TAB - MANAGEMENT SECTION NOW UNDER THE CARDS */}
       {activeTab === 'cards' && (
         <div className="tab-content">
           <div className="cards-grid-container">
-            <h2 className="cards-instruction">Click on a card to reveal!</h2>
             <div className="cards-grid">
               {cardOptions.map((card, index) => {
                 const isFlipped = flippedCards.includes(index);
                 const isMaxedOut = card.timesSelected >= card.maxSelections;
+                const isCurrentlySwiping = swipingCardIndex === index;
                 
                 return (
                   <div 
                     key={index} 
-                    className={`flip-card ${isFlipped ? 'flipped' : ''} ${isMaxedOut ? 'maxed-out' : ''}`}
-                    onClick={() => handleCardClick(index)}
+                    className={`flip-card ${isFlipped ? 'flipped' : ''} ${isMaxedOut ? 'maxed-out' : ''} ${isCurrentlySwiping ? 'swiping' : ''}`}
+                    onClick={() => !isCurrentlySwiping && handleCardClick(index)}
+                    onTouchStart={(e) => handleSwipeStart(e, index)}
+                    onTouchMove={(e) => handleSwipeMove(e, index)}
+                    onTouchEnd={(e) => handleSwipeEnd(e, index)}
+                    onMouseDown={(e) => handleSwipeStart(e, index)}
+                    onMouseMove={(e) => handleSwipeMove(e, index)}
+                    onMouseUp={(e) => handleSwipeEnd(e, index)}
+                    onMouseLeave={(e) => {
+                      if (isSwiping && swipingCardIndex === index) {
+                        handleSwipeEnd(e, index);
+                      }
+                    }}
                   >
                     <div className="flip-card-inner">
                       <div className="flip-card-front">
@@ -707,82 +828,92 @@ function App() {
                 );
               })}
             </div>
-          </div>
 
-          <div className="options-manager">
-            <div className="options-header">
-              <h3>Manage Card Options</h3>
-              <button 
-                onClick={() => setShowCardList(!showCardList)}
-                className="toggle-list-button"
-              >
-                {showCardList ? '🔼 Hide List' : '🔽 Show List'}
-              </button>
-            </div>
-            
-            {showCardList && (
-              <>
-                <div className="add-option-container">
-                  <div className="add-option">
-                    <input
-                      type="text"
-                      placeholder="Enter new card..."
-                      value={newCardOption}
-                      onChange={(e) => setNewCardOption(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddCardOption()}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max uses"
-                      value={cardMaxSelections}
-                      min="1"
-                      max="99"
-                      onChange={(e) => setCardMaxSelections(parseInt(e.target.value) || 1)}
-                      className="max-selections-input"
-                      disabled={!isCardLimitEnabled}
-                    />
-                    <button onClick={handleAddCardOption}>Add Card</button>
-                  </div>
-                  
-                  <div className="limit-checkbox">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={isCardLimitEnabled}
-                        onChange={(e) => setIsCardLimitEnabled(e.target.checked)}
-                      />
-                      <span>Set selection limit (uncheck for unlimited)</span>
-                    </label>
-                  </div>
-                </div>
+                <button onClick={handleShuffleCards} className="shuffle-button">
+        🔀 Shuffle Cards
+      </button>
 
-                <button onClick={handleResetCardCounts} className="reset-button">
-                  🔄 Reset All Cards
+            {/* CARD MANAGEMENT SECTION - NOW RIGHT UNDER THE CARDS */}
+            <div className="options-manager" style={{ marginTop: '30px' }}>
+              <div className="options-header">
+                <h3>Manage Card Options</h3>
+                <button 
+                  onClick={() => setShowCardList(!showCardList)}
+                  className="toggle-list-button"
+                >
+                  {showCardList ? '🔼 Hide List' : '🔽 Show List'}
                 </button>
+              </div>
+              
+              {showCardList && (
+                <>
+                  <div className="add-option-container">
+                    <div className="add-option">
+                      <input
+                        type="text"
+                        placeholder="Enter new card..."
+                        value={newCardOption}
+                        onChange={(e) => setNewCardOption(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddCardOption()}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Max uses"
+                        value={cardMaxSelections}
+                        min="1"
+                        max="99"
+                        onChange={(e) => setCardMaxSelections(parseInt(e.target.value) || 1)}
+                        className="max-selections-input"
+                        disabled={!isCardLimitEnabled}
+                      />
+                      <button onClick={handleAddCardOption}>Add Card</button>
+                    </div>
+                    
+                    <div className="limit-checkbox">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={isCardLimitEnabled}
+                          onChange={(e) => setIsCardLimitEnabled(e.target.checked)}
+                        />
+                        <span>Set selection limit (uncheck for unlimited)</span>
+                      </label>
+                    </div>
+                  </div>
+                 
 
-                <div className="options-list">
-                  {cardOptions.map((option, index) => {
-                    const isUnlimited = option.maxSelections === Infinity;
-                    return (
-                      <div key={index} className="option-item">
-                        <div className="option-info">
-                          <span className="option-name">{option.name}</span>
-                          <span className="option-counter">
-                            ({isUnlimited ? `${option.timesSelected}/∞` : `${option.timesSelected}/${option.maxSelections}`})
-                          </span>
+                  <button onClick={handleResetCardCounts} className="reset-button">
+                    🔄 Reset All Cards
+                  </button>
+
+                  <button onClick={handleDeleteAllCardOptions} className="delete-all-button">
+                    🗑️ Delete All Choices
+                  </button>
+
+                  <div className="options-list">
+                    {cardOptions.map((option, index) => {
+                      const isUnlimited = option.maxSelections === Infinity;
+                      return (
+                        <div key={index} className="option-item">
+                          <div className="option-info">
+                            <span className="option-name">{option.name}</span>
+                            <span className="option-counter">
+                              ({isUnlimited ? `${option.timesSelected}/∞` : `${option.timesSelected}/${option.maxSelections}`})
+                            </span>
+                          </div>
+                          <button 
+                            onClick={() => handleRemoveCardOption(index)}
+                            className="delete-button"
+                          >
+                            ✕
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => handleRemoveCardOption(index)}
-                          className="delete-button"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -811,6 +942,33 @@ function App() {
                 Sign Out
               </button>
             </div>
+
+            <button 
+              onClick={() => setShowAdminPanel(true)} 
+              className="admin-button"
+              style={{
+                padding: '10px 20px',
+                background: 'rgba(255, 215, 0, 0.3)',
+                color: 'white',
+                border: '2px solid gold',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                marginTop: '10px',
+                width: '100%',
+                transition: 'all 0.3s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 215, 0, 0.5)';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 215, 0, 0.3)';
+                e.target.style.transform = 'translateY(0)';
+              }}
+            >
+              📊 Admin Panel
+            </button>
             
             <div className="save-wheel-section">
               <h3>💾 Save Current Configuration</h3>
@@ -857,6 +1015,13 @@ function App() {
           </div>
         )}
       </div>
+
+      {showAdminPanel && (
+        <AdminPanel 
+          user={user} 
+          onClose={() => setShowAdminPanel(false)} 
+        />
+      )}
     </div>
   );
 }
