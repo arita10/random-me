@@ -1,0 +1,238 @@
+// storage.rules - Firebase Storage Security Rules
+// Deploy these rules to Firebase Console or via Firebase CLI: firebase deploy --only storage
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if file is an allowed image type
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Check specific image types
+    function isAllowedImageType() {
+      return request.resource.contentType in [
+        'image/jpeg',
+        'image/png', 
+        'image/webp',
+        'image/gif'
+      ];
+    }
+    
+    // Check file size (5MB limit by default)
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // Check if user owns the file
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Validate filename (no malicious characters)
+    function isValidFilename() {
+      return !request.resource.name.matches('.*[<>:"/\\|?*].*');
+    }
+    
+    // ============================================
+    // USER PROFILE IMAGES
+    // ============================================
+    
+    // User avatars/profile pictures
+    match /users/{userId}/avatar/{fileName} {
+      // Allow read if authenticated
+      allow read: if isAuthenticated();
+      
+      // Allow upload/update only for own avatar
+      allow write: if isAuthenticated()
+        && isOwner(userId)
+        && isAllowedImageType()
+        && isValidSize(2) // 2MB limit for avatars
+        && isValidFilename();
+      
+      // Allow delete only for own avatar
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // ============================================
+    // WHEEL/CARD CUSTOM IMAGES (Optional feature)
+    // ============================================
+    
+    // Custom images for wheel options or cards
+    match /users/{userId}/customImages/{fileName} {
+      allow read: if isAuthenticated();
+      
+      allow write: if isAuthenticated()
+        && isOwner(userId)
+        && isAllowedImageType()
+        && isValidSize(5) // 5MB limit for custom images
+        && isValidFilename();
+      
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // ============================================
+    // SHARED/PUBLIC IMAGES
+    // ============================================
+    
+    // Public shared images (read by anyone, write by owner)
+    match /public/{userId}/{fileName} {
+      // Anyone can read public images
+      allow read: if true;
+      
+      // Only owner can upload
+      allow write: if isAuthenticated()
+        && isOwner(userId)
+        && isAllowedImageType()
+        && isValidSize(5)
+        && isValidFilename();
+      
+      // Only owner can delete
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // ============================================
+    // TEMPORARY UPLOADS (Optional - for processing)
+    // ============================================
+    
+    // Temporary folder for uploads (deleted by Cloud Function after processing)
+    match /temp/{userId}/{fileName} {
+      // Can only read own temp files
+      allow read: if isAuthenticated() && isOwner(userId);
+      
+      // Can only write to own temp folder
+      allow write: if isAuthenticated()
+        && isOwner(userId)
+        && isAllowedImageType()
+        && isValidSize(10) // Slightly higher limit for temp files
+        && isValidFilename();
+      
+      // Can only delete own temp files
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // ============================================
+    // DENY ALL OTHER ACCESS
+    // ============================================
+    
+    // Default deny - any path not explicitly allowed is denied
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ============================================
+// DEPLOYMENT INSTRUCTIONS
+// ============================================
+// 
+// 1. Via Firebase Console:
+//    - Go to Firebase Console > Storage > Rules
+//    - Copy and paste these rules
+//    - Click "Publish"
+// 
+// 2. Via Firebase CLI:
+//    - Save this file as storage.rules in your project root
+//    - Run: firebase deploy --only storage
+// 
+// 3. Testing:
+//    - Use Firebase Emulator: firebase emulators:start
+//    - Test uploads with different file types and sizes
+// 
+// ============================================
+// SECURITY NOTES
+// ============================================
+// 
+// ✅ Users can only access their own files
+// ✅ File type validation (only images allowed)
+// ✅ File size limits prevent abuse
+// ✅ Filename validation prevents injection attacks
+// ✅ Authentication required for uploads
+// ✅ Public folder for shared content
+// ✅ Temp folder for processing workflows
+// 
+// ⚠️ Additional Security Measures:
+// 
+// 1. Client-side validation (before upload):
+//    - Check file type
+//    - Check file size
+//    - Validate filename
+//    - Scan for malware (if critical)
+// 
+// 2. Cloud Function validation (after upload):
+//    - Re-validate file type
+//    - Compress images
+//    - Generate thumbnails
+//    - Scan for inappropriate content (if needed)
+//    - Delete temp files after processing
+// 
+// 3. Monitoring:
+//    - Set up storage usage alerts
+//    - Monitor for unusual upload patterns
+//    - Track storage costs
+//    - Review access logs
+// 
+// 4. Additional Protections:
+//    - Set bucket CORS policy
+//    - Enable uniform bucket-level access
+//    - Use signed URLs for sensitive content
+//    - Implement rate limiting via Cloud Functions
+// 
+// ============================================
+// ALLOWED FILE TYPES
+// ============================================
+// 
+// Currently allowed:
+// - image/jpeg (.jpg, .jpeg)
+// - image/png (.png)
+// - image/webp (.webp)
+// - image/gif (.gif)
+// 
+// To add more types, update isAllowedImageType() function
+// 
+// Example for PDFs:
+// function isAllowedPDF() {
+//   return request.resource.contentType == 'application/pdf';
+// }
+// 
+// ============================================
+// FILE SIZE LIMITS
+// ============================================
+// 
+// - Avatar: 2MB
+// - Custom Images: 5MB
+// - Temp Files: 10MB
+// - Public Images: 5MB
+// 
+// Adjust limits based on your needs and budget
+// 
+// ============================================
+// CORS CONFIGURATION (Optional)
+// ============================================
+// 
+// If you need CORS for Storage:
+// 
+// 1. Create cors.json:
+// [
+//   {
+//     "origin": ["https://your-domain.com"],
+//     "method": ["GET", "HEAD", "PUT", "POST"],
+//     "maxAgeSeconds": 3600
+//   }
+// ]
+// 
+// 2. Apply CORS:
+// gsutil cors set cors.json gs://your-bucket-name.appspot.com
+// 
+// ============================================

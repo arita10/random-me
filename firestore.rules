@@ -1,0 +1,215 @@
+// firestore.rules - Firestore Security Rules
+// Deploy these rules to Firebase Console or via Firebase CLI: firebase deploy --only firestore:rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if user is accessing their own document
+    function isUserDocument(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Validate data size (prevent abuse)
+    function isValidSize(data, maxSize) {
+      return request.resource.data.size() < maxSize;
+    }
+    
+    // Check if data contains required fields
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    // Validate string length
+    function isValidStringLength(field, maxLength) {
+      return request.resource.data[field] is string 
+        && request.resource.data[field].size() <= maxLength;
+    }
+    
+    // Check rate limiting (basic - use Cloud Functions for advanced)
+    function notTooFrequent() {
+      return request.time > resource.data.lastUpdated + duration.value(1, 's');
+    }
+    
+    // ============================================
+    // USER DATA RULES
+    // ============================================
+    
+    // User profiles - users can only read/write their own profile
+    match /users/{userId} {
+      allow read: if isUserDocument(userId);
+      allow create: if isUserDocument(userId) 
+        && hasRequiredFields(['createdAt', 'uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow update: if isUserDocument(userId)
+        && request.resource.data.uid == resource.data.uid; // Can't change UID
+      allow delete: if isUserDocument(userId);
+    }
+    
+    // ============================================
+    // SPINNING WHEEL DATA RULES
+    // ============================================
+    
+    // Wheel configurations - users can only access their own wheels
+    match /wheels/{wheelId} {
+      allow read: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'name', 'options', 'createdAt'])
+        && isValidStringLength('name', 100)
+        && request.resource.data.options.size() <= 100; // Max 100 options
+      
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId // Can't change owner
+        && isValidStringLength('name', 100)
+        && request.resource.data.options.size() <= 100;
+      
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // DICE ROLLER DATA RULES
+    // ============================================
+    
+    // Dice roll history - users can only access their own history
+    match /diceRolls/{rollId} {
+      allow read: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'result', 'timestamp'])
+        && request.resource.data.result is number;
+      
+      allow update: if false; // Roll history is immutable
+      
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // CARD SELECTOR DATA RULES
+    // ============================================
+    
+    // Card decks - users can only access their own decks
+    match /cardDecks/{deckId} {
+      allow read: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'name', 'cards', 'createdAt'])
+        && isValidStringLength('name', 100)
+        && request.resource.data.cards.size() <= 200; // Max 200 cards
+      
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && isValidStringLength('name', 100)
+        && request.resource.data.cards.size() <= 200;
+      
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // SHARED/PUBLIC DATA RULES (if you add sharing features)
+    // ============================================
+    
+    // Public wheels (read-only for everyone, write only by owner)
+    match /publicWheels/{wheelId} {
+      allow read: if true; // Anyone can read public wheels
+      
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'name', 'options', 'isPublic', 'createdAt'])
+        && request.resource.data.isPublic == true
+        && isValidStringLength('name', 100)
+        && request.resource.data.options.size() <= 100;
+      
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+      
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // ANALYTICS/USAGE DATA (Optional)
+    // ============================================
+    
+    // Anonymous usage statistics (write-only)
+    match /analytics/{eventId} {
+      allow read: if false; // Nobody can read analytics
+      allow create: if isAuthenticated()
+        && hasRequiredFields(['timestamp', 'eventType'])
+        && request.resource.data.timestamp == request.time;
+      allow update, delete: if false;
+    }
+    
+    // ============================================
+    // DENY ALL OTHER ACCESS
+    // ============================================
+    
+    // Default deny - any path not explicitly allowed is denied
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ============================================
+// DEPLOYMENT INSTRUCTIONS
+// ============================================
+// 
+// 1. Via Firebase Console:
+//    - Go to Firebase Console > Firestore Database > Rules
+//    - Copy and paste these rules
+//    - Click "Publish"
+// 
+// 2. Via Firebase CLI:
+//    - Save this file as firestore.rules in your project root
+//    - Run: firebase deploy --only firestore:rules
+// 
+// 3. Testing:
+//    - Use Firebase Emulator: firebase emulators:start
+//    - Test rules in Console Rules Playground
+// 
+// ============================================
+// SECURITY NOTES
+// ============================================
+// 
+// ✅ Users can only access their own data
+// ✅ All writes require authentication
+// ✅ Data validation prevents malformed data
+// ✅ Size limits prevent abuse
+// ✅ User IDs cannot be changed after creation
+// ✅ Default deny for all unmatched paths
+// 
+// ⚠️ Remember to:
+// - Never use "allow read, write: if true" in production
+// - Always validate data on write
+// - Use Cloud Functions for complex logic
+// - Monitor usage in Firebase Console
+// - Set up budget alerts
+// 
+// ============================================
