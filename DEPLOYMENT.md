@@ -37,5 +37,37 @@ It may take a few minutes for the changes to propagate. If the issue persists:
 
 ## Deployment Checklist
 - [x] Environment variables configured on Vercel
-- [ ] Vercel domain added to Firebase authorized domains
-- [ ] Test login after domain is authorized
+- [x] Vercel domain added to Firebase authorized domains (random-me-rho.vercel.app)
+- [ ] Verify all environment variables are correct
+- [ ] Redeploy application
+- [ ] Test login after redeployment
+
+## Vercel Environment Variables Checklist
+
+Please verify these EXACT values in your Vercel dashboard:
+
+1. **REACT_APP_FIREBASE_API_KEY**
+   - Value: `AIzaSyBihjhGKnoKtAdrsAViEcMbZTPWgQdcpyM`
+
+2. **REACT_APP_FIREBASE_AUTH_DOMAIN**
+   - Value: `spinning-wheel-app-c80c2.firebaseapp.com`
+
+3. **REACT_APP_FIREBASE_PROJECT_ID**
+   - Value: `spinning-wheel-app-c80c2`
+
+4. **REACT_APP_FIREBASE_STORAGE_BUCKET**
+   - Value: `spinning-wheel-app-c80c2.firebasestorage.app`
+   - ⚠️ IMPORTANT: Must end with `.app` NOT `.ap`
+
+5. **REACT_APP_FIREBASE_MESSAGING_SENDER_ID**
+   - Value: `511438866896`
+
+6. **REACT_APP_FIREBASE_APP_ID**
+   - Value: `1:511438866896:web:2971702025cfc1d79a51d5`
+
+### How to Verify on Vercel:
+1. Go to https://vercel.com/dashboard
+2. Select your project
+3. Settings → Environment Variables
+4. Check EACH variable matches exactly (especially STORAGE_BUCKET)
+5. Make sure variables are enabled for Production, Preview, and Development
