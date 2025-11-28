@@ -8,7 +8,9 @@
       "Bash(fi)",
       "Bash(cat:*)",
       "Bash(del favicon.ico logo192.png logo512.png)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
