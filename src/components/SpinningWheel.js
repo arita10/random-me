@@ -1,175 +1,207 @@
-// SpinningWheel.js - Complete Spinning Wheel Component
-// Place this in: src/components/SpinningWheel.js
-
-import React, { useState, useRef, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { useAuth } from '../hooks/useAuth';
-import { validateWheelData, checkRateLimit } from '../utils/validation';
+// Import React and the useState hook
+import React, { useState, useEffect } from 'react';
+import { auth, signInWithGoogle, signOutUser, saveWheel, loadWheel, getUserWheels, deleteWheel } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './SpinningWheel.css';
 
-function SpinningWheel() {
-  const { user, userId } = useAuth();
-  const [options, setOptions] = useState(['Option 1', 'Option 2', 'Option 3', 'Option 4']);
+function SpinningWheel({ theme = 'dark' }) {
+  // ============================================
+  // USER AUTHENTICATION STATE
+  // ============================================
+
+  const [user, setUser] = useState(null);
+
+  // ============================================
+  // WHEEL STATE
+  // ============================================
+
+  const [options, setOptions] = useState([
+    { name: 'Pizza 🍕', maxSelections: 3, timesSelected: 0 },
+    { name: 'Burger 🍔', maxSelections: 3, timesSelected: 0 },
+    { name: 'Sushi 🍣', maxSelections: 3, timesSelected: 0 },
+    { name: 'Pasta 🍝', maxSelections: 3, timesSelected: 0 },
+    { name: 'Salad 🥗', maxSelections: 3, timesSelected: 0 },
+    { name: 'Tacos 🌮', maxSelections: 3, timesSelected: 0 },
+    { name: 'Ramen 🍜', maxSelections: 3, timesSelected: 0 },
+    { name: 'Steak 🥩', maxSelections: 3, timesSelected: 0 }
+  ]);
+
   const [newOption, setNewOption] = useState('');
-  const [wheelName, setWheelName] = useState('My Wheel');
+  const [maxSelections, setMaxSelections] = useState(1);
+  const [isLimitEnabled, setIsLimitEnabled] = useState(true);
+  const [showOptionsOnWheel, setShowOptionsOnWheel] = useState(true);
+  const [showOptionsList, setShowOptionsList] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [winner, setWinner] = useState(null);
   const [rotation, setRotation] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [wheelName, setWheelName] = useState('My Wheel');
   const [savedWheels, setSavedWheels] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
   const [error, setError] = useState('');
-  const wheelRef = useRef(null);
 
-  // Load saved wheels on mount
+  // ============================================
+  // EFFECTS
+  // ============================================
+
   useEffect(() => {
-    loadSavedWheels();
-  }, [userId]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        loadUserWheels(currentUser.uid);
+      } else {
+        setSavedWheels([]);
+      }
+    });
 
-  // Load saved wheels from Firestore
-  const loadSavedWheels = async () => {
-    if (!userId) return;
-    
+    return () => unsubscribe();
+  }, []);
+
+  // ============================================
+  // WHEEL FUNCTIONS
+  // ============================================
+
+  const loadUserWheels = async (userId) => {
     try {
-      const q = query(
-        collection(db, 'wheels'),
-        where('userId', '==', userId)
-      );
-      const snapshot = await getDocs(q);
-      const wheels = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const wheels = await getUserWheels(userId);
       setSavedWheels(wheels);
     } catch (error) {
-      console.error('Error loading wheels:', error);
-      setError('Failed to load saved wheels');
+      console.error("Error loading wheels:", error);
     }
   };
 
-  // Add new option
+  const handleDeleteAllOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL options? This cannot be undone!');
+    if (!confirmDelete) return;
+
+    setOptions([]);
+    setSelectedOption(null);
+  };
+
   const handleAddOption = () => {
-    if (!newOption.trim()) {
-      setError('Please enter an option');
-      return;
+    if (newOption.trim() !== '') {
+      const newOptionObj = {
+        name: newOption,
+        maxSelections: isLimitEnabled ? maxSelections : Infinity,
+        timesSelected: 0
+      };
+      setOptions([...options, newOptionObj]);
+      setNewOption('');
     }
-
-    if (options.length >= 100) {
-      setError('Maximum 100 options allowed');
-      return;
-    }
-
-    const trimmed = newOption.trim();
-    if (trimmed.length > 100) {
-      setError('Option too long (max 100 characters)');
-      return;
-    }
-
-    setOptions([...options, trimmed]);
-    setNewOption('');
-    setError('');
   };
 
-  // Remove option
-  const handleRemoveOption = (index) => {
-    if (options.length <= 2) {
-      setError('Minimum 2 options required');
-      return;
-    }
-    setOptions(options.filter((_, i) => i !== index));
-    setError('');
+  const handleRemoveOption = (indexToRemove) => {
+    const updatedOptions = options.filter((_, index) => index !== indexToRemove);
+    setOptions(updatedOptions);
   };
 
-  // Spin the wheel
-  const handleSpin = () => {
-    // Rate limiting check
-    const rateCheck = checkRateLimit('wheelSpin', 2000); // 1 spin per 2 seconds
-    if (!rateCheck.allowed) {
-      setError(rateCheck.error);
+  const handleResetCounts = () => {
+    const resetOptions = options.map(opt => ({
+      ...opt,
+      timesSelected: 0
+    }));
+    setOptions(resetOptions);
+    setSelectedOption(null);
+  };
+
+  const spinWheel = () => {
+    if (isSpinning || options.length === 0) return;
+
+    const availableOptions = options.filter(opt => opt.timesSelected < opt.maxSelections);
+    if (availableOptions.length === 0) {
+      alert('All options have been used up! Please reset or add new options.');
       return;
     }
-
-    if (options.length < 2) {
-      setError('Need at least 2 options to spin');
-      return;
-    }
-
-    if (isSpinning) return;
 
     setIsSpinning(true);
-    setWinner(null);
-    setError('');
+    setSelectedOption(null);
 
-    // Calculate random winner
-    const winnerIndex = Math.floor(Math.random() * options.length);
-    
-    // Calculate rotation (multiple spins + land on winner)
-    const spins = 5; // Number of full rotations
-    const degreePerOption = 360 / options.length;
-    const winnerDegree = degreePerOption * winnerIndex;
-    const totalRotation = (360 * spins) + (360 - winnerDegree);
+    const minSpins = 5;
+    const maxSpins = 10;
+    const randomSpins = minSpins + Math.random() * (maxSpins - minSpins);
+    const randomDegrees = randomSpins * 360;
+    const extraRotation = Math.random() * 360;
+    const totalRotation = rotation + randomDegrees + extraRotation;
 
-    setRotation(rotation + totalRotation);
+    setRotation(totalRotation);
 
-    // Show winner after animation
     setTimeout(() => {
-      setWinner(options[winnerIndex]);
+      let normalizedRotation = totalRotation % 360;
+      if (normalizedRotation < 0) normalizedRotation += 360;
+
+      const anglePerOption = 360 / options.length;
+      let selectedIndex = Math.floor(-normalizedRotation / anglePerOption);
+
+      while (selectedIndex < 0) {
+        selectedIndex += options.length;
+      }
+
+      selectedIndex = selectedIndex % options.length;
+
+      console.log('🎯 Selected index:', selectedIndex, '- Option:', options[selectedIndex].name);
+
+      let selectedOpt = options[selectedIndex];
+
+      let attempts = 0;
+      while (selectedOpt.timesSelected >= selectedOpt.maxSelections && attempts < options.length) {
+        selectedIndex = (selectedIndex + 1) % options.length;
+        selectedOpt = options[selectedIndex];
+        attempts++;
+      }
+
+      const updatedOptions = options.map((opt, idx) => {
+        if (idx === selectedIndex && opt.timesSelected < opt.maxSelections) {
+          return {
+            ...opt,
+            timesSelected: opt.timesSelected + 1
+          };
+        }
+        return opt;
+      });
+
+      setOptions(updatedOptions);
+      setSelectedOption(selectedOpt.name);
       setIsSpinning(false);
     }, 4000);
   };
 
-  // Save wheel to Firestore
   const handleSaveWheel = async () => {
-    if (!userId) {
+    if (!user) {
       setError('Please sign in to save wheels');
       return;
     }
 
-    // Validate wheel data
-    const validation = validateWheelData({
-      name: wheelName,
-      options: options
-    });
-
-    if (!validation.valid) {
-      setError(validation.errors.join(', '));
+    if (!wheelName.trim()) {
+      setError('Please enter a wheel name');
       return;
     }
 
     try {
-      await addDoc(collection(db, 'wheels'), {
-        userId: userId,
-        name: validation.data.name,
-        options: validation.data.options,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
+      await saveWheel(user.uid, wheelName, options);
       setError('');
       alert('Wheel saved successfully! ✅');
-      loadSavedWheels();
+      loadUserWheels(user.uid);
     } catch (error) {
       console.error('Error saving wheel:', error);
       setError('Failed to save wheel. Please try again.');
     }
   };
 
-  // Load a saved wheel
   const handleLoadWheel = (wheel) => {
     setWheelName(wheel.name);
     setOptions(wheel.options);
     setShowSaved(false);
-    setWinner(null);
+    setSelectedOption(null);
     setError('');
   };
 
-  // Delete a saved wheel
   const handleDeleteWheel = async (wheelId) => {
     if (!window.confirm('Delete this wheel?')) return;
 
     try {
-      await deleteDoc(doc(db, 'wheels', wheelId));
-      loadSavedWheels();
+      await deleteWheel(wheelId);
+      if (user) {
+        loadUserWheels(user.uid);
+      }
       alert('Wheel deleted');
     } catch (error) {
       console.error('Error deleting wheel:', error);
@@ -177,24 +209,40 @@ function SpinningWheel() {
     }
   };
 
-  // Reset wheel
   const handleReset = () => {
-    setOptions(['Option 1', 'Option 2', 'Option 3', 'Option 4']);
+    setOptions([
+      { name: 'Pizza 🍕', maxSelections: 3, timesSelected: 0 },
+      { name: 'Burger 🍔', maxSelections: 3, timesSelected: 0 },
+      { name: 'Sushi 🍣', maxSelections: 3, timesSelected: 0 },
+      { name: 'Pasta 🍝', maxSelections: 3, timesSelected: 0 },
+      { name: 'Salad 🥗', maxSelections: 3, timesSelected: 0 },
+      { name: 'Tacos 🌮', maxSelections: 3, timesSelected: 0 },
+      { name: 'Ramen 🍜', maxSelections: 3, timesSelected: 0 },
+      { name: 'Steak 🥩', maxSelections: 3, timesSelected: 0 }
+    ]);
     setWheelName('My Wheel');
-    setWinner(null);
+    setSelectedOption(null);
     setRotation(0);
     setError('');
   };
 
-  // Colors for wheel segments
-  const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
-    '#F8B739', '#52B788', '#F06292', '#64B5F6'
+  // ============================================
+  // RENDER
+  // ============================================
+
+  const rainbowColors = [
+    'linear-gradient(135deg, #FF0080 0%, #FF0000 100%)',
+    'linear-gradient(135deg, #FF4500 0%, #FF8C00 100%)',
+    'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+    'linear-gradient(135deg, #00FF00 0%, #32CD32 100%)',
+    'linear-gradient(135deg, #00CED1 0%, #1E90FF 100%)',
+    'linear-gradient(135deg, #4169E1 0%, #0000FF 100%)',
+    'linear-gradient(135deg, #8A2BE2 0%, #9400D3 100%)',
+    'linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)',
   ];
 
   return (
-    <div className="component-page">
+    <div className={`component-page ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">
@@ -206,21 +254,146 @@ function SpinningWheel() {
         </p>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="component-grid">
-        {/* Left Panel - Controls */}
-        <div className="control-panel card">
-          <h2 className="panel-title">Wheel Configuration</h2>
+      {/* Main Content */}
+      <div className="wheel-container">
+        <div className="pointer-container">
+          <div className="pointer-arrow">▼</div>
+          <div className="pointer-line"></div>
+        </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              {error}
+        <div
+          className="wheel"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+            transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+          }}
+        >
+          {options.map((option, index) => {
+            const angle = (360 / options.length) * index;
+            const background = rainbowColors[index % rainbowColors.length];
+
+            return (
+              <div
+                key={index}
+                className="wheel-segment"
+                style={{
+                  transform: `rotate(${angle}deg)`,
+                  background: background,
+                  opacity: 1
+                }}
+              >
+                {showOptionsOnWheel && (
+                  <div className="wheel-text">
+                    <span className="option-text">{option.name}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="wheel-center">
+            <span>SPIN</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={spinWheel}
+        disabled={isSpinning || options.length === 0}
+        className="spin-button"
+      >
+        {isSpinning ? 'Spinning...' : 'SPIN THE WHEEL!'}
+      </button>
+
+      {selectedOption && !isSpinning && (
+        <div className="result">
+          <h2>🎉 Result: {selectedOption}</h2>
+        </div>
+      )}
+
+      <div className="options-manager">
+        <div className="options-header">
+          <h3>Manage Options</h3>
+          <button
+            onClick={() => setShowOptionsList(!showOptionsList)}
+            className="toggle-list-button"
+          >
+            {showOptionsList ? '🔼 Hide List' : '🔽 Show List'}
+          </button>
+        </div>
+
+        {showOptionsList && (
+          <>
+            <div className="add-option-container">
+              <div className="add-option">
+                <input
+                  type="text"
+                  placeholder="Enter new option..."
+                  value={newOption}
+                  onChange={(e) => setNewOption(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddOption()}
+                />
+                <input
+                  type="number"
+                  placeholder="Max uses"
+                  value={maxSelections}
+                  min="1"
+                  max="99"
+                  onChange={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
+                  className="max-selections-input"
+                  disabled={!isLimitEnabled}
+                />
+                <button onClick={handleAddOption}>Add Option</button>
+              </div>
+
+              <div className="limit-checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={isLimitEnabled}
+                    onChange={(e) => setIsLimitEnabled(e.target.checked)}
+                  />
+                  <span>Set selection limit (uncheck for unlimited)</span>
+                </label>
+              </div>
             </div>
-          )}
 
-          {/* Wheel Name */}
+            <button onClick={handleResetCounts} className="reset-button">
+              🔄 Reset All Counts
+            </button>
+
+            <button onClick={handleDeleteAllOptions} className="delete-all-button">
+              🗑️ Delete All Choices
+            </button>
+
+            <div className="options-list">
+              {options.map((option, index) => {
+                const isUnlimited = option.maxSelections === Infinity;
+                return (
+                  <div key={index} className="option-item">
+                    <div className="option-info">
+                      <span className="option-name">{option.name}</span>
+                      <span className="option-counter">
+                        ({isUnlimited ? `${option.timesSelected}/∞` : `${option.timesSelected}/${option.maxSelections}`})
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveOption(index)}
+                      className="delete-button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Save/Load Section */}
+      {user && (
+        <div className="save-section">
           <div className="input-section">
             <label className="input-label">Wheel Name</label>
             <input
@@ -233,65 +406,25 @@ function SpinningWheel() {
             />
           </div>
 
-          {/* Add Option */}
-          <div className="input-section">
-            <label className="input-label">Add Options ({options.length}/100)</label>
-            <div className="input-group">
-              <input
-                type="text"
-                value={newOption}
-                onChange={(e) => setNewOption(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddOption()}
-                className="input-field"
-                placeholder="Enter option..."
-                maxLength={100}
-              />
-              <button onClick={handleAddOption} className="btn btn-primary">
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Options List */}
-          <div className="options-list">
-            {options.map((option, index) => (
-              <div key={index} className="option-item">
-                <div className="option-color" style={{ background: colors[index % colors.length] }}></div>
-                <span className="option-text">{option}</span>
-                <button
-                  onClick={() => handleRemoveOption(index)}
-                  className="btn-icon-danger"
-                  title="Remove option"
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="button-group">
-            <button
-              onClick={handleSpin}
-              disabled={isSpinning || options.length < 2}
-              className="btn btn-primary btn-large"
-            >
-              {isSpinning ? 'Spinning...' : 'Spin the Wheel'}
-              <span className="btn-icon">🎯</span>
+          <div className="button-row">
+            <button onClick={handleSaveWheel} className="btn btn-secondary">
+              💾 Save
             </button>
-
-            <div className="button-row">
-              <button onClick={handleSaveWheel} className="btn btn-secondary">
-                💾 Save
-              </button>
-              <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
-                📂 Load
-              </button>
-              <button onClick={handleReset} className="btn btn-secondary">
-                🔄 Reset
-              </button>
-            </div>
+            <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
+              📂 Load
+            </button>
+            <button onClick={handleReset} className="btn btn-secondary">
+              🔄 Reset
+            </button>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
 
           {/* Saved Wheels */}
           {showSaved && (
@@ -320,84 +453,7 @@ function SpinningWheel() {
             </div>
           )}
         </div>
-
-        {/* Right Panel - Wheel Display */}
-        <div className="display-panel card">
-          <div className="wheel-container">
-            <div className="wheel-pointer">▼</div>
-            
-            <svg
-              ref={wheelRef}
-              className="wheel-svg"
-              viewBox="0 0 400 400"
-              style={{
-                transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
-              }}
-            >
-              {/* Draw wheel segments */}
-              {options.map((option, index) => {
-                const angle = (360 / options.length) * index;
-                const nextAngle = (360 / options.length) * (index + 1);
-                const startAngle = (angle - 90) * (Math.PI / 180);
-                const endAngle = (nextAngle - 90) * (Math.PI / 180);
-                
-                const x1 = 200 + 180 * Math.cos(startAngle);
-                const y1 = 200 + 180 * Math.sin(startAngle);
-                const x2 = 200 + 180 * Math.cos(endAngle);
-                const y2 = 200 + 180 * Math.sin(endAngle);
-
-                const largeArc = (nextAngle - angle) > 180 ? 1 : 0;
-
-                return (
-                  <g key={index}>
-                    <path
-                      d={`M 200 200 L ${x1} ${y1} A 180 180 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                      fill={colors[index % colors.length]}
-                      stroke="#ffffff"
-                      strokeWidth="2"
-                    />
-                    <text
-                      x="200"
-                      y="200"
-                      fill="#ffffff"
-                      fontSize="14"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                      transform={`rotate(${angle + (360 / options.length) / 2}, 200, 200) translate(0, -120)`}
-                    >
-                      {option.length > 15 ? option.substring(0, 15) + '...' : option}
-                    </text>
-                  </g>
-                );
-              })}
-              
-              {/* Center circle */}
-              <circle cx="200" cy="200" r="30" fill="#ffffff" stroke="#333" strokeWidth="3" />
-              <circle cx="200" cy="200" r="20" fill="#333" />
-            </svg>
-          </div>
-
-          {/* Result Display */}
-          {winner && (
-            <div className="result-card animate-in">
-              <div className="result-confetti">🎉</div>
-              <h3 className="result-title">Winner!</h3>
-              <div className="result-value">{winner}</div>
-              <button onClick={() => setWinner(null)} className="btn btn-secondary btn-small">
-                Clear Result
-              </button>
-            </div>
-          )}
-
-          {/* Instructions */}
-          {!winner && !isSpinning && (
-            <div className="instructions">
-              <p>👆 Add options and click "Spin the Wheel" to get started!</p>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,55 +1,72 @@
-// CardSelector.js - Complete Card Selector Component
-// Place this in: src/components/CardSelector.js
-
+// Import React and the useState hook
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useAuth } from '../hooks/useAuth';
-import { validateCardDeck, checkRateLimit } from '../utils/validation';
+import { auth, signInWithGoogle, signOutUser } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './CardSelector.css';
 
-function CardSelector() {
-  const { userId } = useAuth();
-  
-  // Default playing cards
-  const defaultCards = [
-    '🂡 Ace ♠', '🂢 2 ♠', '🂣 3 ♠', '🂤 4 ♠', '🂥 5 ♠', '🂦 6 ♠', '🂧 7 ♠', 
-    '🂨 8 ♠', '🂩 9 ♠', '🂪 10 ♠', '🂫 Jack ♠', '🂭 Queen ♠', '🂮 King ♠',
-    '🂱 Ace ♥', '🂲 2 ♥', '🂳 3 ♥', '🂴 4 ♥', '🂵 5 ♥', '🂶 6 ♥', '🂷 7 ♥',
-    '🂸 8 ♥', '🂹 9 ♥', '🂺 10 ♥', '🂻 Jack ♥', '🂽 Queen ♥', '🂾 King ♥',
-    '🃁 Ace ♦', '🃂 2 ♦', '🃃 3 ♦', '🃄 4 ♦', '🃅 5 ♦', '🃆 6 ♦', '🃇 7 ♦',
-    '🃈 8 ♦', '🃉 9 ♦', '🃊 10 ♦', '🃋 Jack ♦', '🃍 Queen ♦', '🃎 King ♦',
-    '🃑 Ace ♣', '🃒 2 ♣', '🃓 3 ♣', '🃔 4 ♣', '🃕 5 ♣', '🃖 6 ♣', '🃗 7 ♣',
-    '🃘 8 ♣', '🃙 9 ♣', '🃚 10 ♣', '🃛 Jack ♣', '🃝 Queen ♣', '🃞 King ♣'
-  ];
+function CardSelector({ theme = 'dark' }) {
+  // ============================================
+  // USER AUTHENTICATION STATE
+  // ============================================
 
-  const [cards, setCards] = useState(defaultCards);
+  const [user, setUser] = useState(null);
+
+  // ============================================
+  // CARD STATE
+  // ============================================
+
+  const [cardOptions, setCardOptions] = useState([
+    { name: 'Ace ♠', maxSelections: 3, timesSelected: 0 },
+    { name: 'King ♥', maxSelections: 3, timesSelected: 0 },
+    { name: 'Queen ♦', maxSelections: 3, timesSelected: 0 },
+    { name: 'Jack ♣', maxSelections: 3, timesSelected: 0 },
+    { name: '10 ♠', maxSelections: 3, timesSelected: 0 },
+    { name: '9 ♥', maxSelections: 3, timesSelected: 0 },
+    { name: '8 ♦', maxSelections: 3, timesSelected: 0 },
+    { name: '7 ♣', maxSelections: 3, timesSelected: 0 }
+  ]);
+
+  const [newCardOption, setNewCardOption] = useState('');
+  const [cardMaxSelections, setCardMaxSelections] = useState(1);
+  const [isCardLimitEnabled, setIsCardLimitEnabled] = useState(true);
+  const [showCardList, setShowCardList] = useState(true);
+  const [flippedCards, setFlippedCards] = useState([]);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const [deckName, setDeckName] = useState('Playing Cards');
-  const [newCard, setNewCard] = useState('');
-  const [selectedCards, setSelectedCards] = useState([]);
-  const [drawCount, setDrawCount] = useState(1);
-  const [isDrawing, setIsDrawing] = useState(false);
   const [savedDecks, setSavedDecks] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
-  const [selectionMode, setSelectionMode] = useState('draw'); // draw, shuffle, pick
   const [error, setError] = useState('');
 
-  // Preset decks
-  const presets = [
-    { name: 'Playing Cards', cards: defaultCards },
-    { name: 'Yes/No', cards: ['✅ Yes', '❌ No'] },
-    { name: 'Rock Paper Scissors', cards: ['✊ Rock', '✋ Paper', '✌️ Scissors'] },
-    { name: 'Numbers 1-10', cards: Array.from({length: 10}, (_, i) => `${i + 1}`) },
-    { name: 'Coin Flip', cards: ['🪙 Heads', '🪙 Tails'] }
-  ];
+  // SWIPE STATE FOR CARDS
+  const [swipeStart, setSwipeStart] = useState({ x: 0, y: 0 });
+  const [swipeEnd, setSwipeEnd] = useState({ x: 0, y: 0 });
+  const [isSwiping, setIsSwiping] = useState(false);
+  const [swipingCardIndex, setSwipingCardIndex] = useState(null);
 
-  // Load saved decks on mount
+  // ============================================
+  // EFFECTS
+  // ============================================
+
   useEffect(() => {
-    loadSavedDecks();
-  }, [userId]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        loadSavedDecks(currentUser.uid);
+      } else {
+        setSavedDecks([]);
+      }
+    });
 
-  // Load saved decks from Firestore
-  const loadSavedDecks = async () => {
+    return () => unsubscribe();
+  }, []);
+
+  // ============================================
+  // CARD FUNCTIONS
+  // ============================================
+
+  const loadSavedDecks = async (userId) => {
     if (!userId) return;
 
     try {
@@ -68,145 +85,172 @@ function CardSelector() {
     }
   };
 
-  // Add new card
-  const handleAddCard = () => {
-    if (!newCard.trim()) {
-      setError('Please enter a card');
-      return;
-    }
+  const handleDeleteAllCardOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL card options? This cannot be undone!');
+    if (!confirmDelete) return;
 
-    if (cards.length >= 200) {
-      setError('Maximum 200 cards allowed');
-      return;
-    }
-
-    const trimmed = newCard.trim();
-    if (trimmed.length > 100) {
-      setError('Card text too long (max 100 characters)');
-      return;
-    }
-
-    setCards([...cards, trimmed]);
-    setNewCard('');
-    setError('');
+    setCardOptions([]);
+    setFlippedCards([]);
+    setSelectedCardIndex(null);
   };
 
-  // Remove card
-  const handleRemoveCard = (index) => {
-    if (cards.length <= 1) {
-      setError('Minimum 1 card required');
-      return;
+  const handleAddCardOption = () => {
+    if (newCardOption.trim() !== '') {
+      const newCardOptionObj = {
+        name: newCardOption,
+        maxSelections: isCardLimitEnabled ? cardMaxSelections : Infinity,
+        timesSelected: 0
+      };
+      setCardOptions([...cardOptions, newCardOptionObj]);
+      setNewCardOption('');
     }
-    setCards(cards.filter((_, i) => i !== index));
-    setError('');
   };
 
-  // Draw cards
-  const handleDraw = () => {
-    // Rate limiting
-    const rateCheck = checkRateLimit('cardDraw', 1000);
-    if (!rateCheck.allowed) {
-      setError(rateCheck.error);
+  const handleRemoveCardOption = (indexToRemove) => {
+    const updatedOptions = cardOptions.filter((_, index) => index !== indexToRemove);
+    setCardOptions(updatedOptions);
+    setFlippedCards(flippedCards.filter(idx => idx !== indexToRemove));
+  };
+
+  const handleResetCardCounts = () => {
+    const resetOptions = cardOptions.map(opt => ({
+      ...opt,
+      timesSelected: 0
+    }));
+    setCardOptions(resetOptions);
+    setFlippedCards([]);
+    setSelectedCardIndex(null);
+  };
+
+  const handleShuffleCards = () => {
+    // สุ่มตำแหน่งการ์ดใหม่
+    const shuffled = [...cardOptions].sort(() => Math.random() - 0.5);
+    setCardOptions(shuffled);
+    // รีเซ็ตการ์ดที่พลิกด้วย
+    setFlippedCards([]);
+    setSelectedCardIndex(null);
+  };
+
+  // ============================================
+  // CARD SWIPE FUNCTIONS
+  // ============================================
+
+  const handleSwipeStart = (e, index) => {
+    const card = cardOptions[index];
+
+    if (card.timesSelected >= card.maxSelections) {
       return;
     }
 
-    if (drawCount > cards.length) {
-      setError(`Cannot draw ${drawCount} cards from ${cards.length} card deck`);
+    if (flippedCards.includes(index)) {
       return;
     }
 
-    setIsDrawing(true);
-    setError('');
+    const touch = e.touches ? e.touches[0] : e;
+    setSwipeStart({ x: touch.clientX, y: touch.clientY });
+    setIsSwiping(true);
+    setSwipingCardIndex(index);
+  };
 
-    setTimeout(() => {
-      const shuffled = [...cards].sort(() => Math.random() - 0.5);
-      const drawn = shuffled.slice(0, drawCount);
-      setSelectedCards(drawn);
-      
-      // Remove drawn cards if in "draw" mode
-      if (selectionMode === 'draw') {
-        setCards(shuffled.slice(drawCount));
+  const handleSwipeMove = (e, index) => {
+    if (!isSwiping || swipingCardIndex !== index) return;
+
+    const touch = e.touches ? e.touches[0] : e;
+    setSwipeEnd({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleSwipeEnd = (e, index) => {
+    if (!isSwiping || swipingCardIndex !== index) return;
+
+    const deltaX = swipeEnd.x - swipeStart.x;
+    const deltaY = swipeEnd.y - swipeStart.y;
+    const swipeDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    const minSwipeDistance = 50;
+
+    if (swipeDistance > minSwipeDistance) {
+      handleCardClick(index);
+    }
+
+    setIsSwiping(false);
+    setSwipingCardIndex(null);
+    setSwipeStart({ x: 0, y: 0 });
+    setSwipeEnd({ x: 0, y: 0 });
+  };
+
+  const handleCardClick = (index) => {
+    const card = cardOptions[index];
+
+    if (card.timesSelected >= card.maxSelections) {
+      alert('This card has been selected the maximum number of times!');
+      return;
+    }
+
+    if (flippedCards.includes(index)) {
+      return;
+    }
+
+    setFlippedCards([...flippedCards, index]);
+    setSelectedCardIndex(index);
+
+    const updatedOptions = cardOptions.map((opt, idx) => {
+      if (idx === index && opt.timesSelected < opt.maxSelections) {
+        return {
+          ...opt,
+          timesSelected: opt.timesSelected + 1
+        };
       }
-      
-      setIsDrawing(false);
-    }, 800);
+      return opt;
+    });
+
+    setCardOptions(updatedOptions);
   };
 
-  // Shuffle deck
-  const handleShuffle = () => {
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    setCards(shuffled);
-    setSelectedCards([]);
-    setError('');
-  };
-
-  // Reset deck
-  const handleReset = () => {
-    setCards(defaultCards);
-    setDeckName('Playing Cards');
-    setSelectedCards([]);
-    setError('');
-  };
-
-  // Load preset deck
-  const handleLoadPreset = (preset) => {
-    setCards(preset.cards);
-    setDeckName(preset.name);
-    setSelectedCards([]);
-    setError('');
-  };
-
-  // Save deck to Firestore
   const handleSaveDeck = async () => {
-    if (!userId) {
+    if (!user) {
       setError('Please sign in to save decks');
       return;
     }
 
-    const validation = validateCardDeck({
-      name: deckName,
-      cards: cards
-    });
-
-    if (!validation.valid) {
-      setError(validation.errors.join(', '));
+    if (!deckName.trim()) {
+      setError('Please enter a deck name');
       return;
     }
 
     try {
       await addDoc(collection(db, 'cardDecks'), {
-        userId: userId,
-        name: validation.data.name,
-        cards: validation.data.cards,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        userId: user.uid,
+        name: deckName,
+        cards: cardOptions,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
 
       setError('');
       alert('Deck saved successfully! ✅');
-      loadSavedDecks();
+      loadSavedDecks(user.uid);
     } catch (error) {
       console.error('Error saving deck:', error);
       setError('Failed to save deck');
     }
   };
 
-  // Load saved deck
   const handleLoadDeck = (deck) => {
     setDeckName(deck.name);
-    setCards(deck.cards);
-    setSelectedCards([]);
+    setCardOptions(deck.cards);
+    setFlippedCards([]);
     setShowSaved(false);
     setError('');
   };
 
-  // Delete saved deck
   const handleDeleteDeck = async (deckId) => {
     if (!window.confirm('Delete this deck?')) return;
 
     try {
       await deleteDoc(doc(db, 'cardDecks', deckId));
-      loadSavedDecks();
+      if (user) {
+        loadSavedDecks(user.uid);
+      }
       alert('Deck deleted');
     } catch (error) {
       console.error('Error deleting deck:', error);
@@ -214,8 +258,29 @@ function CardSelector() {
     }
   };
 
+  const handleReset = () => {
+    setCardOptions([
+      { name: 'Ace ♠', maxSelections: 3, timesSelected: 0 },
+      { name: 'King ♥', maxSelections: 3, timesSelected: 0 },
+      { name: 'Queen ♦', maxSelections: 3, timesSelected: 0 },
+      { name: 'Jack ♣', maxSelections: 3, timesSelected: 0 },
+      { name: '10 ♠', maxSelections: 3, timesSelected: 0 },
+      { name: '9 ♥', maxSelections: 3, timesSelected: 0 },
+      { name: '8 ♦', maxSelections: 3, timesSelected: 0 },
+      { name: '7 ♣', maxSelections: 3, timesSelected: 0 }
+    ]);
+    setDeckName('Playing Cards');
+    setFlippedCards([]);
+    setSelectedCardIndex(null);
+    setError('');
+  };
+
+  // ============================================
+  // RENDER
+  // ============================================
+
   return (
-    <div className="component-page">
+    <div className={`component-page ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">
@@ -227,37 +292,143 @@ function CardSelector() {
         </p>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="component-grid">
-        {/* Left Panel - Controls */}
-        <div className="control-panel card">
-          <h2 className="panel-title">Deck Configuration</h2>
+      {/* Main Content */}
+      <div className="cards-grid-container">
+        <div className="cards-grid">
+          {cardOptions.map((card, index) => {
+            const isFlipped = flippedCards.includes(index);
+            const isMaxedOut = card.timesSelected >= card.maxSelections;
+            const isCurrentlySwiping = swipingCardIndex === index;
 
-          {/* Error Message */}
-          {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              {error}
-            </div>
-          )}
+            return (
+              <div
+                key={index}
+                className={`flip-card ${isFlipped ? 'flipped' : ''} ${isMaxedOut ? 'maxed-out' : ''} ${isCurrentlySwiping ? 'swiping' : ''}`}
+                onClick={() => !isCurrentlySwiping && handleCardClick(index)}
+                onTouchStart={(e) => handleSwipeStart(e, index)}
+                onTouchMove={(e) => handleSwipeMove(e, index)}
+                onTouchEnd={(e) => handleSwipeEnd(e, index)}
+                onMouseDown={(e) => handleSwipeStart(e, index)}
+                onMouseMove={(e) => handleSwipeMove(e, index)}
+                onMouseUp={(e) => handleSwipeEnd(e, index)}
+                onMouseLeave={(e) => {
+                  if (isSwiping && swipingCardIndex === index) {
+                    handleSwipeEnd(e, index);
+                  }
+                }}
+              >
+                <div className="flip-card-inner">
+                  <div className="flip-card-front">
+                    <div className="card-back-design">
+                      <div className="card-pattern">🃏</div>
+                      <div className="card-number">{index + 1}</div>
+                    </div>
+                  </div>
+                  <div className="flip-card-back">
+                    <div className="card-answer">
+                      {card.name}
+                    </div>
+                    <div className="card-selection-count">
+                      {card.maxSelections === Infinity
+                        ? `${card.timesSelected}/∞`
+                        : `${card.timesSelected}/${card.maxSelections}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-          {/* Preset Decks */}
-          <div className="input-section">
-            <label className="input-label">Preset Decks</label>
-            <div className="preset-grid">
-              {presets.map((preset, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleLoadPreset(preset)}
-                  className="preset-btn"
-                >
-                  {preset.name}
-                </button>
-              ))}
-            </div>
+        <button onClick={handleShuffleCards} className="shuffle-button">
+          🔀 Shuffle Cards
+        </button>
+
+        {/* CARD MANAGEMENT SECTION - NOW RIGHT UNDER THE CARDS */}
+        <div className="options-manager" style={{ marginTop: '30px' }}>
+          <div className="options-header">
+            <h3>Manage Card Options</h3>
+            <button
+              onClick={() => setShowCardList(!showCardList)}
+              className="toggle-list-button"
+            >
+              {showCardList ? '🔼 Hide List' : '🔽 Show List'}
+            </button>
           </div>
 
-          {/* Deck Name */}
+          {showCardList && (
+            <>
+              <div className="add-option-container">
+                <div className="add-option">
+                  <input
+                    type="text"
+                    placeholder="Enter new card..."
+                    value={newCardOption}
+                    onChange={(e) => setNewCardOption(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCardOption()}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max uses"
+                    value={cardMaxSelections}
+                    min="1"
+                    max="99"
+                    onChange={(e) => setCardMaxSelections(parseInt(e.target.value) || 1)}
+                    className="max-selections-input"
+                    disabled={!isCardLimitEnabled}
+                  />
+                  <button onClick={handleAddCardOption}>Add Card</button>
+                </div>
+
+                <div className="limit-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={isCardLimitEnabled}
+                      onChange={(e) => setIsCardLimitEnabled(e.target.checked)}
+                    />
+                    <span>Set selection limit (uncheck for unlimited)</span>
+                  </label>
+                </div>
+              </div>
+
+              <button onClick={handleResetCardCounts} className="reset-button">
+                🔄 Reset All Cards
+              </button>
+
+              <button onClick={handleDeleteAllCardOptions} className="delete-all-button">
+                🗑️ Delete All Choices
+              </button>
+
+              <div className="options-list">
+                {cardOptions.map((option, index) => {
+                  const isUnlimited = option.maxSelections === Infinity;
+                  return (
+                    <div key={index} className="option-item">
+                      <div className="option-info">
+                        <span className="option-name">{option.name}</span>
+                        <span className="option-counter">
+                          ({isUnlimited ? `${option.timesSelected}/∞` : `${option.timesSelected}/${option.maxSelections}`})
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveCardOption(index)}
+                        className="delete-button"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Save/Load Section */}
+      {user && (
+        <div className="save-section">
           <div className="input-section">
             <label className="input-label">Deck Name</label>
             <input
@@ -270,89 +441,25 @@ function CardSelector() {
             />
           </div>
 
-          {/* Add Card */}
-          <div className="input-section">
-            <label className="input-label">Add Cards ({cards.length}/200)</label>
-            <div className="input-group">
-              <input
-                type="text"
-                value={newCard}
-                onChange={(e) => setNewCard(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddCard()}
-                className="input-field"
-                placeholder="Enter card..."
-                maxLength={100}
-              />
-              <button onClick={handleAddCard} className="btn btn-primary">
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Selection Mode */}
-          <div className="input-section">
-            <label className="input-label">Selection Mode</label>
-            <div className="mode-tabs">
-              <button
-                onClick={() => setSelectionMode('draw')}
-                className={`mode-tab ${selectionMode === 'draw' ? 'active' : ''}`}
-              >
-                Draw (Remove)
-              </button>
-              <button
-                onClick={() => setSelectionMode('pick')}
-                className={`mode-tab ${selectionMode === 'pick' ? 'active' : ''}`}
-              >
-                Pick (Keep)
-              </button>
-            </div>
-          </div>
-
-          {/* Draw Count */}
-          <div className="input-section">
-            <label className="input-label">Number of Cards</label>
-            <div className="slider-container">
-              <input
-                type="range"
-                value={drawCount}
-                onChange={(e) => setDrawCount(parseInt(e.target.value))}
-                className="slider"
-                min="1"
-                max={Math.min(cards.length, 10)}
-              />
-              <span className="slider-value">{drawCount}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="button-group">
-            <button
-              onClick={handleDraw}
-              disabled={isDrawing || cards.length === 0}
-              className="btn btn-primary btn-large"
-            >
-              {isDrawing ? 'Drawing...' : `Draw ${drawCount} Card${drawCount > 1 ? 's' : ''}`}
-              <span className="btn-icon">🎴</span>
+          <div className="button-row">
+            <button onClick={handleSaveDeck} className="btn btn-secondary">
+              💾 Save
             </button>
-
-            <div className="button-row">
-              <button onClick={handleShuffle} className="btn btn-secondary">
-                🔀 Shuffle
-              </button>
-              <button onClick={handleSaveDeck} className="btn btn-secondary">
-                💾 Save
-              </button>
-            </div>
-
-            <div className="button-row">
-              <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
-                📂 Load
-              </button>
-              <button onClick={handleReset} className="btn btn-secondary">
-                🔄 Reset
-              </button>
-            </div>
+            <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
+              📂 Load
+            </button>
+            <button onClick={handleReset} className="btn btn-secondary">
+              🔄 Reset
+            </button>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
 
           {/* Saved Decks */}
           {showSaved && (
@@ -381,63 +488,7 @@ function CardSelector() {
             </div>
           )}
         </div>
-
-        {/* Right Panel - Card Display */}
-        <div className="display-panel card">
-          {/* Selected Cards */}
-          {selectedCards.length > 0 && (
-            <div className="selected-section">
-              <h3 className="selected-title">Selected Cards</h3>
-              <div className="cards-display">
-                {selectedCards.map((card, index) => (
-                  <div
-                    key={index}
-                    className="card-item selected"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    {card}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setSelectedCards([])}
-                className="btn btn-secondary btn-small"
-              >
-                Clear Selection
-              </button>
-            </div>
-          )}
-
-          {/* Deck Cards */}
-          <div className="deck-section">
-            <h3 className="deck-title">
-              Deck ({cards.length} card{cards.length !== 1 ? 's' : ''})
-            </h3>
-            {cards.length === 0 ? (
-              <div className="empty-deck">
-                <div className="empty-deck-icon">🃏</div>
-                <p>Deck is empty. Add some cards!</p>
-              </div>
-            ) : (
-              <div className="cards-grid">
-                {cards.map((card, index) => (
-                  <div key={index} className="card-item-wrapper">
-                    <div className="card-item">
-                      {card}
-                    </div>
-                    <button
-                      onClick={() => handleRemoveCard(index)}
-                      className="card-remove"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

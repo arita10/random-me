@@ -1,11 +1,22 @@
 .navigation {
-  background: var(--nav-bg);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   position: sticky;
   top: 0;
   z-index: 1000;
   transition: all 0.3s ease;
+}
+
+/* Theme-aware navigation colors */
+.dark-theme .navigation {
+  background: rgba(102, 126, 234, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.light-theme .navigation {
+  background: rgba(224, 195, 252, 0.25);
+  border-bottom: 1px solid rgba(118, 75, 162, 0.15);
 }
 
 .nav-container {
@@ -49,6 +60,96 @@
   align-items: center;
 }
 
+/* Dropdown Navigation */
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.dropdown-toggle:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+  margin-left: 2px;
+}
+
+.nav-dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+}
+
+.dropdown-item:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.dropdown-item.active {
+  background: var(--active-bg);
+  color: var(--primary-color);
+}
+
+.item-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -73,18 +174,6 @@
   color: var(--primary-color);
 }
 
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 3px;
-  background: var(--gradient-primary);
-  border-radius: 3px 3px 0 0;
-}
-
 .nav-icon {
   font-size: 1.25rem;
 }
@@ -95,19 +184,122 @@
   gap: 1rem;
 }
 
-.theme-toggle {
-  background: var(--button-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 0.5rem 0.75rem;
-  font-size: 1.25rem;
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d6bcfa 0%, #9f7aea 100%);
+  border: none;
   cursor: pointer;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(0) scale(1);
+}
+
+/* Auth Buttons */
+.google-signin-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  background: white;
+  color: #2d3748;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
 }
 
-.theme-toggle:hover {
-  transform: scale(1.1) rotate(15deg);
-  background: var(--hover-bg);
+.google-signin-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.google-signin-button.mobile {
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 12px 20px;
+}
+
+.google-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.user-info.mobile {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.user-name {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.signout-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.signout-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.signout-button.mobile {
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .mobile-menu-btn {
@@ -152,10 +344,34 @@
   padding: 1rem 2rem;
   background: var(--nav-bg);
   border-top: 1px solid var(--border-color);
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .mobile-menu.open {
   display: flex;
+}
+
+.mobile-menu-section {
+  margin-bottom: 1rem;
+}
+
+.mobile-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary-color);
+  background: var(--active-bg);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-menu-section .nav-link {
+  padding-left: 2.5rem;
+  font-size: 0.95rem;
 }
 
 /* Responsive Design */
@@ -174,5 +390,19 @@
 
   .logo-text {
     display: none;
+  }
+
+  .theme-toggle-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 }

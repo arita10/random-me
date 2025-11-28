@@ -1,3 +1,6 @@
+/* Import Fun Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 /* CSS Reset and Base Styles */
 * {
   margin: 0;
@@ -7,6 +10,11 @@
 
 /* CSS Variables for Light Theme */
 :root {
+  /* Fonts */
+  --font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Fredoka', 'Poppins', sans-serif;
+  --font-body: 'Outfit', 'Poppins', sans-serif;
+
   /* Primary Colors */
   --primary-color: #6366f1;
   --secondary-color: #8b5cf6;
@@ -83,15 +91,27 @@ body.dark-mode {
 
 /* Base Body Styles */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background 0.5s ease, color 0.3s ease;
   line-height: 1.6;
+}
+
+/* Fun Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+button, .btn {
+  font-family: var(--font-primary);
+}
+
+p, span, div {
+  font-family: var(--font-body);
 }
 
 /* App Container */
@@ -99,6 +119,30 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* Light Theme - Pink/Blue Gradient */
+.app-container.light-theme {
+  background: linear-gradient(135deg,
+    rgba(251, 207, 232, 0.5) 0%,    /* Light pink */
+    rgba(224, 195, 252, 0.5) 25%,   /* Light purple */
+    rgba(191, 219, 254, 0.5) 50%,   /* Light blue */
+    rgba(224, 195, 252, 0.5) 75%,   /* Light purple */
+    rgba(251, 207, 232, 0.5) 100%   /* Light pink */
+  );
+  background-attachment: fixed;
+}
+
+/* Dark Theme - Darker Pink/Blue Gradient */
+.app-container.dark-theme {
+  background: linear-gradient(135deg,
+    rgba(157, 23, 77, 0.6) 0%,      /* Darker pink */
+    rgba(107, 33, 168, 0.6) 25%,    /* Darker purple */
+    rgba(30, 64, 175, 0.6) 50%,     /* Darker blue */
+    rgba(107, 33, 168, 0.6) 75%,    /* Darker purple */
+    rgba(157, 23, 77, 0.6) 100%     /* Darker pink */
+  );
+  background-attachment: fixed;
 }
 
 .main-content {

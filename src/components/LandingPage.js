@@ -9,21 +9,56 @@ function LandingPage() {
       title: 'Spinning Wheel',
       description: 'Create custom wheels for random selection with weighted options',
       path: '/wheel',
-      color: '#FF6B6B'
-    },
-    {
-      icon: '🎲',
-      title: 'Dice Roller',
-      description: 'Roll multiple dice with customizable sides and quantities',
-      path: '/dice',
-      color: '#4ECDC4'
+      color: '#6366f1',
+      category: 'Selection Tools'
     },
     {
       icon: '🃏',
       title: 'Card Selector',
       description: 'Pick random cards from custom decks with various selection modes',
       path: '/cards',
-      color: '#95E1D3'
+      color: '#8b5cf6',
+      category: 'Selection Tools'
+    },
+    {
+      icon: '🎲',
+      title: 'Dice Roller',
+      description: 'Roll multiple dice with customizable sides and quantities',
+      path: '/dice',
+      color: '#ec4899',
+      category: 'Selection Tools'
+    },
+    {
+      icon: '🎨',
+      title: 'Color Picker',
+      description: 'Spin the wheel or randomly select colors from your palette',
+      path: '/color',
+      color: '#f43f5e',
+      category: 'Selection Tools'
+    },
+    {
+      icon: '👥',
+      title: 'Team Assignment',
+      description: 'Randomly assign people to teams with Excel import support',
+      path: '/team-assignment',
+      color: '#10b981',
+      category: 'Team Tools'
+    },
+    {
+      icon: '🪙',
+      title: 'Coin Flip',
+      description: 'Flip a virtual coin with beautiful 3D animation and statistics',
+      path: '/coin-flip',
+      color: '#f59e0b',
+      category: 'Games'
+    },
+    {
+      icon: '✊',
+      title: 'Rock Paper Scissors',
+      description: 'Play against the computer and track your wins and losses',
+      path: '/rps',
+      color: '#3b82f6',
+      category: 'Games'
     }
   ];
 
@@ -56,8 +91,9 @@ function LandingPage() {
 
         <div className="hero-visual">
           <div className="floating-card card-1">🎡</div>
-          <div className="floating-card card-2">🎲</div>
-          <div className="floating-card card-3">🃏</div>
+          <div className="floating-card card-2">🎨</div>
+          <div className="floating-card card-3">🪙</div>
+          <div className="floating-card card-4">✊</div>
           <div className="visual-circle"></div>
         </div>
       </section>
@@ -65,20 +101,21 @@ function LandingPage() {
       {/* Features Section */}
       <section id="features" className="features">
         <div className="section-header">
-          <h2 className="section-title">Choose Your Selector</h2>
+          <h2 className="section-title">All Random Tools in One Place</h2>
           <p className="section-subtitle">
-            Three powerful tools to help you make fair and random selections
+            Seven powerful tools to help you make fair and random decisions
           </p>
         </div>
 
         <div className="features-grid">
           {features.map((feature, index) => (
-            <Link 
-              to={feature.path} 
-              key={index} 
+            <Link
+              to={feature.path}
+              key={index}
               className="feature-card"
               style={{'--feature-color': feature.color}}
             >
+              <div className="feature-category">{feature.category}</div>
               <div className="feature-icon">{feature.icon}</div>
               <h3 className="feature-title">{feature.title}</h3>
               <p className="feature-description">{feature.description}</p>
@@ -102,7 +139,7 @@ function LandingPage() {
           <div className="benefit-item">
             <div className="benefit-icon">🔒</div>
             <h3>Private & Secure</h3>
-            <p>Your data stays on your device with optional cloud sync</p>
+            <p>Enterprise-grade security with input validation and XSS protection</p>
           </div>
           <div className="benefit-item">
             <div className="benefit-icon">📱</div>
@@ -113,6 +150,16 @@ function LandingPage() {
             <div className="benefit-icon">🎨</div>
             <h3>Customizable</h3>
             <p>Personalize colors, options, and weights to your needs</p>
+          </div>
+          <div className="benefit-item">
+            <div className="benefit-icon">📤</div>
+            <h3>Excel Import</h3>
+            <p>Bulk import names from Excel files for team assignments</p>
+          </div>
+          <div className="benefit-item">
+            <div className="benefit-icon">📊</div>
+            <h3>Track Statistics</h3>
+            <p>View detailed stats and history for games and selections</p>
           </div>
         </div>
       </section>
@@ -144,6 +191,14 @@ function LandingPage() {
           <div className="use-case">
             <span className="use-case-emoji">📚</span>
             <p>Study topics</p>
+          </div>
+          <div className="use-case">
+            <span className="use-case-emoji">🎨</span>
+            <p>Design palettes</p>
+          </div>
+          <div className="use-case">
+            <span className="use-case-emoji">⚽</span>
+            <p>Sports teams</p>
           </div>
         </div>
       </section>

@@ -1,42 +1,63 @@
-// DiceRoller.js - Complete Dice Roller Component
-// Place this in: src/components/DiceRoller.js
-
+// Import React and the useState hook
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useAuth } from '../hooks/useAuth';
-import { validateDiceRoll, checkRateLimit } from '../utils/validation';
+import { auth, signInWithGoogle, signOutUser } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './DiceRoller.css';
 
-function DiceRoller() {
-  const { userId } = useAuth();
-  const [diceCount, setDiceCount] = useState(1);
-  const [diceSides, setDiceSides] = useState(6);
-  const [results, setResults] = useState([]);
-  const [total, setTotal] = useState(0);
+function DiceRoller({ theme = 'dark' }) {
+  // ============================================
+  // USER AUTHENTICATION STATE
+  // ============================================
+
+  const [user, setUser] = useState(null);
+
+  // ============================================
+  // DICE STATE
+  // ============================================
+
+  const [diceOptions, setDiceOptions] = useState([
+    { name: '1️⃣', maxSelections: 3, timesSelected: 0 },
+    { name: '2️⃣', maxSelections: 3, timesSelected: 0 },
+    { name: '3️⃣', maxSelections: 3, timesSelected: 0 },
+    { name: '4️⃣', maxSelections: 3, timesSelected: 0 },
+    { name: '5️⃣', maxSelections: 3, timesSelected: 0 },
+    { name: '6️⃣', maxSelections: 3, timesSelected: 0 }
+  ]);
+
+  const [newDiceOption, setNewDiceOption] = useState('');
+  const [diceMaxSelections, setDiceMaxSelections] = useState(1);
+  const [isDiceLimitEnabled, setIsDiceLimitEnabled] = useState(true);
+  const [showDiceList, setShowDiceList] = useState(true);
   const [isRolling, setIsRolling] = useState(false);
+  const [diceResult, setDiceResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState('');
 
-  // Common dice types
-  const diceTypes = [
-    { sides: 4, name: 'D4', emoji: '🎲' },
-    { sides: 6, name: 'D6', emoji: '🎲' },
-    { sides: 8, name: 'D8', emoji: '🎲' },
-    { sides: 10, name: 'D10', emoji: '🎲' },
-    { sides: 12, name: 'D12', emoji: '🎲' },
-    { sides: 20, name: 'D20', emoji: '🎲' },
-    { sides: 100, name: 'D100', emoji: '🎲' }
-  ];
+  // ============================================
+  // EFFECTS
+  // ============================================
 
-  // Load history on mount
   useEffect(() => {
-    loadHistory();
-  }, [userId]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        loadHistory(currentUser.uid);
+      } else {
+        setHistory([]);
+      }
+    });
 
-  // Load roll history from Firestore
-  const loadHistory = async () => {
+    return () => unsubscribe();
+  }, []);
+
+  // ============================================
+  // DICE FUNCTIONS
+  // ============================================
+
+  const loadHistory = async (userId) => {
     if (!userId) return;
 
     try {
@@ -58,97 +79,98 @@ function DiceRoller() {
     }
   };
 
-  // Roll dice
-  const handleRoll = async () => {
-    // Validate input
-    const validation = validateDiceRoll(diceSides, diceCount);
-    if (!validation.valid) {
-      setError(validation.errors.join(', '));
-      return;
-    }
+  const handleDeleteAllDiceOptions = () => {
+    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL dice options? This cannot be undone!');
+    if (!confirmDelete) return;
 
-    // Rate limiting
-    const rateCheck = checkRateLimit('diceRoll', 500); // 1 roll per 0.5 seconds
-    if (!rateCheck.allowed) {
-      setError(rateCheck.error);
+    setDiceOptions([]);
+    setDiceResult(null);
+  };
+
+  const handleAddDiceOption = () => {
+    if (newDiceOption.trim() !== '') {
+      const newDiceOptionObj = {
+        name: newDiceOption,
+        maxSelections: isDiceLimitEnabled ? diceMaxSelections : Infinity,
+        timesSelected: 0
+      };
+      setDiceOptions([...diceOptions, newDiceOptionObj]);
+      setNewDiceOption('');
+    }
+  };
+
+  const handleRemoveDiceOption = (indexToRemove) => {
+    const updatedOptions = diceOptions.filter((_, index) => index !== indexToRemove);
+    setDiceOptions(updatedOptions);
+  };
+
+  const handleResetDiceCounts = () => {
+    const resetOptions = diceOptions.map(opt => ({
+      ...opt,
+      timesSelected: 0
+    }));
+    setDiceOptions(resetOptions);
+    setDiceResult(null);
+  };
+
+  const rollDice = () => {
+    if (isRolling || diceOptions.length === 0) return;
+
+    const availableOptions = diceOptions.filter(opt => opt.timesSelected < opt.maxSelections);
+    if (availableOptions.length === 0) {
+      alert('All dice options have been used up! Please reset or add new options.');
       return;
     }
 
     setIsRolling(true);
-    setError('');
+    setDiceResult(null);
 
-    // Simulate rolling animation
+    let rollCount = 0;
     const rollInterval = setInterval(() => {
-      const tempResults = Array.from({ length: diceCount }, () => 
-        Math.floor(Math.random() * diceSides) + 1
-      );
-      setResults(tempResults);
-    }, 100);
+      const randomIndex = Math.floor(Math.random() * availableOptions.length);
+      setDiceResult(availableOptions[randomIndex].name);
+      rollCount++;
 
-    // Final result after animation
-    setTimeout(async () => {
-      clearInterval(rollInterval);
-      
-      const finalResults = Array.from({ length: diceCount }, () => 
-        Math.floor(Math.random() * diceSides) + 1
-      );
-      const finalTotal = finalResults.reduce((sum, val) => sum + val, 0);
+      if (rollCount >= 15) {
+        clearInterval(rollInterval);
 
-      setResults(finalResults);
-      setTotal(finalTotal);
-      setIsRolling(false);
+        const randomIndex = Math.floor(Math.random() * availableOptions.length);
+        let selectedOpt = availableOptions[randomIndex];
 
-      // Save to Firestore if user is logged in
-      if (userId) {
-        try {
-          await addDoc(collection(db, 'diceRolls'), {
-            userId: userId,
-            diceCount: diceCount,
-            diceSides: diceSides,
-            results: finalResults,
-            total: finalTotal,
-            timestamp: new Date()
-          });
-          loadHistory();
-        } catch (error) {
-          console.error('Error saving roll:', error);
-        }
+        const selectedIndex = diceOptions.findIndex(opt => opt.name === selectedOpt.name);
+
+        const updatedOptions = diceOptions.map((opt, idx) => {
+          if (idx === selectedIndex && opt.timesSelected < opt.maxSelections) {
+            return {
+              ...opt,
+              timesSelected: opt.timesSelected + 1
+            };
+          }
+          return opt;
+        });
+
+        setDiceOptions(updatedOptions);
+        setDiceResult(selectedOpt.name);
+        setIsRolling(false);
       }
-    }, 1000);
+    }, 100);
   };
 
-  // Clear results
-  const handleClear = () => {
-    setResults([]);
-    setTotal(0);
-    setError('');
-  };
-
-  // Delete history item
-  const handleDeleteHistory = async (rollId) => {
-    try {
-      await deleteDoc(doc(db, 'diceRolls', rollId));
-      loadHistory();
-    } catch (error) {
-      console.error('Error deleting roll:', error);
-    }
-  };
-
-  // Clear all history
   const handleClearHistory = async () => {
+    if (!user) return;
     if (!window.confirm('Clear all roll history?')) return;
 
     try {
       const q = query(
         collection(db, 'diceRolls'),
-        where('userId', '==', userId)
+        where('userId', '==', user.uid)
       );
       const snapshot = await getDocs(q);
-      
-      const deletePromises = snapshot.docs.map(doc => 
+
+      const deletePromises = snapshot.docs.map(doc =>
         deleteDoc(doc.ref)
       );
-      
+
       await Promise.all(deletePromises);
       setHistory([]);
       alert('History cleared');
@@ -158,18 +180,23 @@ function DiceRoller() {
     }
   };
 
-  // Get dice face display
-  const getDiceFace = (value, sides) => {
-    // For D6, show actual dice faces
-    if (sides === 6) {
-      const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-      return faces[value - 1] || value;
+  const handleDeleteHistory = async (rollId) => {
+    try {
+      await deleteDoc(doc(db, 'diceRolls', rollId));
+      if (user) {
+        loadHistory(user.uid);
+      }
+    } catch (error) {
+      console.error('Error deleting roll:', error);
     }
-    return value;
   };
 
+  // ============================================
+  // RENDER
+  // ============================================
+
   return (
-    <div className="component-page">
+    <div className={`component-page ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">
@@ -181,189 +208,146 @@ function DiceRoller() {
         </p>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="component-grid">
-        {/* Left Panel - Controls */}
-        <div className="control-panel card">
-          <h2 className="panel-title">Dice Configuration</h2>
-
-          {/* Error Message */}
-          {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              {error}
-            </div>
-          )}
-
-          {/* Quick Select Dice Types */}
-          <div className="input-section">
-            <label className="input-label">Quick Select</label>
-            <div className="dice-types-grid">
-              {diceTypes.map((dice) => (
-                <button
-                  key={dice.sides}
-                  onClick={() => setDiceSides(dice.sides)}
-                  className={`dice-type-btn ${diceSides === dice.sides ? 'active' : ''}`}
-                >
-                  <span className="dice-emoji">{dice.emoji}</span>
-                  <span className="dice-name">{dice.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom Sides */}
-          <div className="input-section">
-            <label className="input-label">Number of Sides (2-100)</label>
-            <input
-              type="number"
-              value={diceSides}
-              onChange={(e) => setDiceSides(Math.max(2, Math.min(100, parseInt(e.target.value) || 2)))}
-              className="input-field"
-              min="2"
-              max="100"
-            />
-          </div>
-
-          {/* Dice Count */}
-          <div className="input-section">
-            <label className="input-label">Number of Dice (1-10)</label>
-            <div className="slider-container">
-              <input
-                type="range"
-                value={diceCount}
-                onChange={(e) => setDiceCount(parseInt(e.target.value))}
-                className="slider"
-                min="1"
-                max="10"
-              />
-              <span className="slider-value">{diceCount}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="button-group">
-            <button
-              onClick={handleRoll}
-              disabled={isRolling}
-              className="btn btn-primary btn-large"
-            >
-              {isRolling ? 'Rolling...' : 'Roll Dice'}
-              <span className="btn-icon">🎲</span>
-            </button>
-
-            <div className="button-row">
-              <button onClick={handleClear} className="btn btn-secondary">
-                🔄 Clear
-              </button>
-              <button onClick={() => setShowHistory(!showHistory)} className="btn btn-secondary">
-                📜 History
-              </button>
-            </div>
-          </div>
-
-          {/* Statistics */}
-          {results.length > 0 && (
-            <div className="stats-panel">
-              <h3 className="stats-title">Statistics</h3>
-              <div className="stats-grid">
-                <div className="stat-item">
-                  <span className="stat-label">Total</span>
-                  <span className="stat-value">{total}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Average</span>
-                  <span className="stat-value">{(total / results.length).toFixed(1)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Min</span>
-                  <span className="stat-value">{Math.min(...results)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Max</span>
-                  <span className="stat-value">{Math.max(...results)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* History */}
-          {showHistory && (
-            <div className="history-panel">
-              <div className="history-header">
-                <h3 className="history-title">Roll History ({history.length})</h3>
-                {history.length > 0 && (
-                  <button onClick={handleClearHistory} className="btn-text-danger">
-                    Clear All
-                  </button>
-                )}
-              </div>
-              
-              {history.length === 0 ? (
-                <p className="empty-message">No roll history yet</p>
-              ) : (
-                <div className="history-list">
-                  {history.map((roll) => (
-                    <div key={roll.id} className="history-item">
-                      <div className="history-info">
-                        <span className="history-dice">
-                          {roll.diceCount}d{roll.diceSides}
-                        </span>
-                        <span className="history-result">= {roll.total}</span>
-                        <span className="history-time">
-                          {roll.timestamp?.toLocaleDateString()}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteHistory(roll.id)}
-                        className="btn-icon-danger"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right Panel - Dice Display */}
-        <div className="display-panel card">
-          <div className="dice-display">
-            {results.length === 0 ? (
-              <div className="empty-dice">
-                <div className="empty-dice-icon">🎲</div>
-                <p className="empty-dice-text">Roll dice to see results</p>
-              </div>
-            ) : (
-              <>
-                <div className="dice-grid">
-                  {results.map((value, index) => (
-                    <div
-                      key={index}
-                      className={`dice ${isRolling ? 'rolling' : 'result'}`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="dice-value">
-                        {getDiceFace(value, diceSides)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="total-display">
-                  <div className="total-label">Total</div>
-                  <div className="total-value">{total}</div>
-                  <div className="total-formula">
-                    {diceCount}d{diceSides} = {results.join(' + ')}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+      {/* Main Content */}
+      <div className="dice-container">
+        <div className={`dice ${isRolling ? 'rolling' : ''}`}>
+          {diceResult || '🎲'}
         </div>
       </div>
+
+      <button
+        onClick={rollDice}
+        disabled={isRolling || diceOptions.length === 0}
+        className="spin-button"
+      >
+        {isRolling ? 'Rolling...' : 'ROLL THE DICE!'}
+      </button>
+
+      {diceResult && !isRolling && (
+        <div className="result">
+          <h2>🎉 Result: {diceResult}</h2>
+        </div>
+      )}
+
+      <div className="options-manager">
+        <div className="options-header">
+          <h3>Manage Dice Options</h3>
+          <button
+            onClick={() => setShowDiceList(!showDiceList)}
+            className="toggle-list-button"
+          >
+            {showDiceList ? '🔼 Hide List' : '🔽 Show List'}
+          </button>
+        </div>
+
+        {showDiceList && (
+          <>
+            <div className="add-option-container">
+              <div className="add-option">
+                <input
+                  type="text"
+                  placeholder="Enter new dice option..."
+                  value={newDiceOption}
+                  onChange={(e) => setNewDiceOption(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddDiceOption()}
+                />
+                <input
+                  type="number"
+                  placeholder="Max uses"
+                  value={diceMaxSelections}
+                  min="1"
+                  max="99"
+                  onChange={(e) => setDiceMaxSelections(parseInt(e.target.value) || 1)}
+                  className="max-selections-input"
+                  disabled={!isDiceLimitEnabled}
+                />
+                <button onClick={handleAddDiceOption}>Add Option</button>
+              </div>
+
+              <div className="limit-checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={isDiceLimitEnabled}
+                    onChange={(e) => setIsDiceLimitEnabled(e.target.checked)}
+                  />
+                  <span>Set selection limit (uncheck for unlimited)</span>
+                </label>
+              </div>
+            </div>
+
+            <button onClick={handleResetDiceCounts} className="reset-button">
+              🔄 Reset All Counts
+            </button>
+
+            <button onClick={handleDeleteAllDiceOptions} className="delete-all-button">
+              🗑️ Delete All Choices
+            </button>
+
+            <div className="options-list">
+              {diceOptions.map((option, index) => {
+                const isUnlimited = option.maxSelections === Infinity;
+                return (
+                  <div key={index} className="option-item">
+                    <div className="option-info">
+                      <span className="option-name">{option.name}</span>
+                      <span className="option-counter">
+                        ({isUnlimited ? `${option.timesSelected}/∞` : `${option.timesSelected}/${option.maxSelections}`})
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveDiceOption(index)}
+                      className="delete-button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* History Section */}
+      {user && showHistory && (
+        <div className="history-panel">
+          <div className="history-header">
+            <h3 className="history-title">Roll History ({history.length})</h3>
+            {history.length > 0 && (
+              <button onClick={handleClearHistory} className="btn-text-danger">
+                Clear All
+              </button>
+            )}
+          </div>
+
+          {history.length === 0 ? (
+            <p className="empty-message">No roll history yet</p>
+          ) : (
+            <div className="history-list">
+              {history.map((roll) => (
+                <div key={roll.id} className="history-item">
+                  <div className="history-info">
+                    <span className="history-dice">
+                      {roll.diceCount}d{roll.diceSides}
+                    </span>
+                    <span className="history-result">= {roll.total}</span>
+                    <span className="history-time">
+                      {roll.timestamp?.toLocaleDateString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteHistory(roll.id)}
+                    className="btn-icon-danger"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,163 +1,435 @@
-/* DiceRoller.css - Styling for Dice Roller Component */
+/* ============================================
+   GENERAL STYLES
+   ============================================ */
 
-/* Dice Types Grid */
-.dice-types-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.5rem;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.dice-type-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.75rem 0.5rem;
-  background: var(--button-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.813rem;
-  font-weight: 600;
-  color: var(--text-primary);
+.component-page {
+  text-align: center;
+  min-height: 100vh;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+  transition: background 0.3s ease;
 }
 
-.dice-type-btn:hover {
-  background: var(--hover-bg);
-  transform: translateY(-2px);
-}
-
-.dice-type-btn.active {
-  background: var(--gradient-primary);
-  border-color: var(--primary-color);
+/* Dark Theme (Night Mode) */
+.component-page.dark-theme {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.dice-emoji {
-  font-size: 1.5rem;
+/* Light Theme (Sun Mode) */
+.component-page.light-theme {
+  background: linear-gradient(135deg, #e0c3fc 0%, #f8f9ff 100%);
+  color: #2d3748;
 }
 
-.dice-name {
-  font-size: 0.75rem;
+.page-header {
+  padding: 30px 15px 20px;
 }
 
-/* Slider */
-.slider-container {
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.light-theme .page-header h1 {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-description {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+/* ============================================
+   DICE STYLES
+   ============================================ */
+
+.dice-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  margin-bottom: 30px;
+  padding: 20px;
+}
+
+.dice {
+  width: 180px;
+  height: 180px;
+  background: white;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  font-size: 100px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s;
 }
 
-.slider {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 8px;
-  border-radius: 5px;
-  background: var(--border-color);
-  outline: none;
+.dice.rolling {
+  animation: diceRoll 0.1s infinite;
 }
 
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+@keyframes diceRoll {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  75% {
+    transform: rotate(-10deg) scale(1.1);
+  }
 }
 
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  cursor: pointer;
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+
+.spin-button {
+  padding: 14px 35px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #d6bcfa 0%, #9f7aea 100%);
   border: none;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+  margin-bottom: 20px;
+  max-width: 90%;
 }
 
-.slider-value {
-  min-width: 2rem;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--primary-color);
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Stats Panel */
-.stats-panel {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
+.spin-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.stats-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
+.spin-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+/* ============================================
+   RESULT DISPLAY
+   ============================================ */
+
+.result {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 18px;
+  border-radius: 15px;
+  margin: 20px auto;
+  max-width: 90%;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.5s;
 }
 
-.stat-item {
-  text-align: center;
-  padding: 0.75rem;
-  background: var(--card-bg);
+.result h2 {
+  font-size: 1.6rem;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   OPTIONS MANAGER SECTION
+   ============================================ */
+
+.options-manager {
+  background: linear-gradient(135deg, #b794f6, #764ba2);
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  margin: 30px auto;
+  backdrop-filter: blur(10px);
+}
+
+.options-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.options-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  flex: 1;
+  text-align: left;
+  min-width: 150px;
+}
+
+.toggle-list-button {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
 
-.stat-label {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.toggle-list-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.stat-value {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
+.add-option-container {
+  margin-bottom: 20px;
 }
 
-/* History Panel */
+.add-option {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.add-option input[type="text"] {
+  flex: 1;
+  min-width: 150px;
+  padding: 11px;
+  font-size: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.max-selections-input {
+  width: 90px;
+  padding: 11px;
+  font-size: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.max-selections-input:disabled {
+  background: rgba(200, 200, 200, 0.5);
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.add-option input:focus {
+  outline: none;
+  border-color: #9f7aea;
+}
+
+.limit-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.limit-checkbox label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  gap: 8px;
+}
+
+.limit-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #b794f6;
+}
+
+.limit-checkbox span {
+  user-select: none;
+}
+
+.add-option button {
+  padding: 11px 20px;
+  font-size: 0.95rem;
+  background: #b794f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.add-option button:hover {
+  background: #9f7aea;
+  transform: translateY(-2px);
+}
+
+.reset-button {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.reset-button:hover {
+  background: #e67e22;
+  transform: translateY(-2px);
+}
+
+.delete-all-button {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin-bottom: 20px;
+}
+
+.delete-all-button:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+/* ============================================
+   OPTIONS LIST
+   ============================================ */
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  gap: 10px;
+}
+
+.option-item:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  gap: 4px;
+}
+
+.option-name {
+  font-size: 1rem;
+  font-weight: 500;
+  word-wrap: break-word;
+}
+
+.option-counter {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: normal;
+}
+
+.delete-button {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.delete-button:hover {
+  background: #ff5252;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   HISTORY SECTION
+   ============================================ */
+
 .history-panel {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  margin: 30px auto;
+  backdrop-filter: blur(10px);
 }
 
 .history-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 15px;
 }
 
 .history-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
 }
 
 .btn-text-danger {
   background: none;
   border: none;
-  color: #dc2626;
-  font-size: 0.813rem;
+  color: #e74c3c;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
@@ -168,10 +440,16 @@
   opacity: 0.7;
 }
 
+.empty-message {
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  padding: 20px;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 10px;
   max-height: 250px;
   overflow-y: auto;
 }
@@ -180,211 +458,152 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.3s;
 }
 
 .history-item:hover {
-  background: var(--hover-bg);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .history-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
   flex: 1;
 }
 
 .history-dice {
   font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.938rem;
+  font-size: 0.95rem;
 }
 
 .history-result {
-  font-size: 0.813rem;
-  color: var(--primary-color);
-  font-weight: 600;
+  font-size: 0.85rem;
+  color: #4ecdc4;
 }
 
 .history-time {
   font-size: 0.75rem;
-  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
-/* Dice Display */
-.dice-display {
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.empty-dice {
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.empty-dice-icon {
-  font-size: 6rem;
-  margin-bottom: 1rem;
-  opacity: 0.3;
-}
-
-.empty-dice-text {
-  font-size: 1.125rem;
-}
-
-/* Dice Grid */
-.dice-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  width: 100%;
-  max-width: 600px;
-}
-
-.dice {
-  aspect-ratio: 1;
-  background: white;
-  border: 3px solid var(--border-color);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.dice.rolling {
-  animation: diceRoll 0.5s ease infinite;
-}
-
-.dice.result {
-  animation: diceResult 0.5s ease;
-}
-
-.dice-value {
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-/* Total Display */
-.total-display {
-  text-align: center;
-  padding: 2rem;
-  background: var(--gradient-primary);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
-}
-
-.total-label {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
-}
-
-.total-value {
-  font-size: 4rem;
-  font-weight: 800;
+.btn-icon-danger {
+  background: #e74c3c;
   color: white;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
 }
 
-.total-formula {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-family: monospace;
+.btn-icon-danger:hover {
+  background: #c0392b;
+  transform: scale(1.1);
 }
 
-/* Animations */
-@keyframes diceRoll {
-  0%, 100% {
-    transform: rotate(0deg) scale(1);
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
   }
-  25% {
-    transform: rotate(90deg) scale(0.9);
+
+  .component-page {
+    padding: 10px;
   }
-  50% {
-    transform: rotate(180deg) scale(1.1);
+
+  .dice-container {
+    min-height: 250px;
   }
-  75% {
-    transform: rotate(270deg) scale(0.9);
+
+  .dice {
+    width: 140px;
+    height: 140px;
+    font-size: 80px;
+  }
+
+  .spin-button {
+    font-size: 1.1rem;
+    padding: 12px 28px;
+  }
+
+  .result h2 {
+    font-size: 1.4rem;
+  }
+
+  .options-manager,
+  .history-panel {
+    padding: 15px;
+    width: 95%;
+  }
+
+  .options-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .options-header h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+
+  .toggle-list-button {
+    width: 100%;
+  }
+
+  .add-option {
+    flex-direction: column;
+  }
+
+  .add-option input[type="text"],
+  .max-selections-input,
+  .add-option button {
+    width: 100%;
+  }
+
+  .max-selections-input {
+    width: 100%;
   }
 }
 
-@keyframes diceResult {
-  0% {
-    transform: scale(0) rotate(0deg);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2) rotate(180deg);
-  }
-  100% {
-    transform: scale(1) rotate(360deg);
-    opacity: 1;
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 968px) {
-  .dice-types-grid {
-    grid-template-columns: repeat(4, 1fr);
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.5rem;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
+  .dice {
+    width: 120px;
+    height: 120px;
+    font-size: 70px;
   }
 
-  .dice-grid {
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 1rem;
+  .spin-button {
+    font-size: 1rem;
+    padding: 10px 24px;
   }
 
-  .dice-value {
-    font-size: 2.5rem;
+  .result h2 {
+    font-size: 1.2rem;
   }
 
-  .total-value {
-    font-size: 3rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .dice-types-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .option-name {
+    font-size: 0.95rem;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .dice-grid {
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  }
-
-  .dice-value {
-    font-size: 2rem;
-  }
-
-  .total-value {
-    font-size: 2.5rem;
-  }
-
-  .total-display {
-    padding: 1.5rem;
+  .option-counter {
+    font-size: 0.75rem;
   }
 }

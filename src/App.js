@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './hooks/useAuth';  // ← ADD THIS!
+import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './App.css';
 
 // Import components
 import SpinningWheel from './components/SpinningWheel';
 import DiceRoller from './components/DiceRoller';
 import CardSelector from './components/CardSelector';
+import TeamAssignment from './components/TeamAssignment';
+import ColorPicker from './components/ColorPicker';
+import CoinFlip from './components/CoinFlip';
+import RockPaperScissors from './components/RockPaperScissors';
 
 // UI Components
 import LandingPage from './components/LandingPage';
@@ -15,6 +20,15 @@ import Footer from './components/Footer';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Track user authentication
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -34,33 +48,41 @@ function App() {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
+  const theme = darkMode ? 'dark' : 'light';
+
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
 
   return (
-    <AuthProvider>  {/* ← WRAP EVERYTHING IN AuthProvider! */}
-      <Router>
-        <div className="app-container">
-          <Navigation 
-            darkMode={darkMode} 
-            toggleDarkMode={toggleDarkMode}
-          />
-          
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/wheel" element={<SpinningWheel />} />
-              <Route path="/dice" element={<DiceRoller />} />
-              <Route path="/cards" element={<CardSelector />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </main>
+    <Router>
+      <div className={`app-container ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
+        <Navigation
+          darkMode={darkMode}
+          user={user}
+          toggleDarkMode={toggleDarkMode}
+        />
 
-          <Footer />
-        </div>
-      </Router>
-    </AuthProvider>  
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            {/* Selection Tools */}
+            <Route path="/wheel" element={<SpinningWheel theme={theme} />} />
+            <Route path="/cards" element={<CardSelector theme={theme} />} />
+            <Route path="/dice" element={<DiceRoller theme={theme} />} />
+            <Route path="/color" element={<ColorPicker theme={theme} />} />
+            {/* Games */}
+            <Route path="/coin-flip" element={<CoinFlip theme={theme} />} />
+            <Route path="/rps" element={<RockPaperScissors theme={theme} />} />
+            {/* Team Tools */}
+            <Route path="/team-assignment" element={<TeamAssignment theme={theme} />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
