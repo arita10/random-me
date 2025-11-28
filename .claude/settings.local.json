@@ -7,7 +7,8 @@
       "Bash(then touch \".env.example\")",
       "Bash(fi)",
       "Bash(cat:*)",
-      "Bash(del favicon.ico logo192.png logo512.png)"
+      "Bash(del favicon.ico logo192.png logo512.png)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
