@@ -12,6 +12,7 @@ import TeamAssignment from './components/TeamAssignment';
 import ColorPicker from './components/ColorPicker';
 import CoinFlip from './components/CoinFlip';
 import RockPaperScissors from './components/RockPaperScissors';
+import MatchingGame from './components/MatchingGame';
 
 // UI Components
 import LandingPage from './components/LandingPage';
@@ -74,6 +75,7 @@ function App() {
             {/* Games */}
             <Route path="/coin-flip" element={<CoinFlip theme={theme} />} />
             <Route path="/rps" element={<RockPaperScissors theme={theme} />} />
+            <Route path="/matching-game" element={<MatchingGame theme={theme} />} />
             {/* Team Tools */}
             <Route path="/team-assignment" element={<TeamAssignment theme={theme} />} />
             <Route path="*" element={<Navigate to="/" />} />
