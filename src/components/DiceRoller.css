@@ -306,6 +306,10 @@
   font-weight: bold;
   transition: all 0.3s;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .reset-button:hover {
