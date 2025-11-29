@@ -3,10 +3,10 @@ import './ColorPicker.css';
 
 function ColorPicker({ theme }) {
   const [colors, setColors] = useState([
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+    '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+    '#FF00FF', '#00FFFF', '#FF8C00', '#9400D3'
   ]);
-  const [newColor, setNewColor] = useState('#FF6B6B');
+  const [newColor, setNewColor] = useState('#FF0000');
   const [selectedColor, setSelectedColor] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -149,7 +149,7 @@ function ColorPicker({ theme }) {
             type="text"
             value={newColor}
             onChange={(e) => setNewColor(e.target.value)}
-            placeholder="#FF6B6B"
+            placeholder="#FF0000"
             className="color-text-input"
           />
           <button onClick={handleAddColor} className="btn-add-color">

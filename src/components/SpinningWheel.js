@@ -271,6 +271,17 @@ function SpinningWheel({ theme = 'dark' }) {
           {options.map((option, index) => {
             const angle = (360 / options.length) * index;
             const background = rainbowColors[index % rainbowColors.length];
+            const segmentAngle = 360 / options.length;
+
+            // Calculate clip-path for the segment
+            const halfAngle = segmentAngle / 2;
+            const halfAngleRad = (halfAngle * Math.PI) / 180;
+            const x1 = 50 + 50 * Math.sin(-halfAngleRad);
+            const y1 = 50 - 50 * Math.cos(-halfAngleRad);
+            const x2 = 50 + 50 * Math.sin(halfAngleRad);
+            const y2 = 50 - 50 * Math.cos(halfAngleRad);
+
+            const clipPath = `polygon(50% 50%, ${x1}% ${y1}%, ${x2}% ${y2}%)`;
 
             return (
               <div
@@ -279,7 +290,8 @@ function SpinningWheel({ theme = 'dark' }) {
                 style={{
                   transform: `rotate(${angle}deg)`,
                   background: background,
-                  opacity: 1
+                  opacity: 1,
+                  clipPath: clipPath
                 }}
               >
                 {showOptionsOnWheel && (
@@ -333,16 +345,36 @@ function SpinningWheel({ theme = 'dark' }) {
                   onChange={(e) => setNewOption(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddOption()}
                 />
-                <input
-                  type="number"
-                  placeholder="Max uses"
-                  value={maxSelections}
-                  min="1"
-                  max="99"
-                  onChange={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
-                  className="max-selections-input"
-                  disabled={!isLimitEnabled}
-                />
+                <div className="number-input-wrapper">
+                  <button
+                    className="number-btn"
+                    onClick={() => setMaxSelections(Math.max(1, maxSelections - 1))}
+                    disabled={!isLimitEnabled || maxSelections <= 1}
+                    type="button"
+                  >
+                    ▼
+                  </button>
+                  <input
+                    type="number"
+                    placeholder="Max uses"
+                    value={maxSelections}
+                    min="1"
+                    max="99"
+                    onChange={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
+                    onInput={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
+                    className="max-selections-input"
+                    disabled={!isLimitEnabled}
+                    inputMode="numeric"
+                  />
+                  <button
+                    className="number-btn"
+                    onClick={() => setMaxSelections(Math.min(99, maxSelections + 1))}
+                    disabled={!isLimitEnabled || maxSelections >= 99}
+                    type="button"
+                  >
+                    ▲
+                  </button>
+                </div>
                 <button onClick={handleAddOption}>Add Option</button>
               </div>
 

@@ -238,6 +238,12 @@
   padding: 12px 20px;
 }
 
+.google-signin-button svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
 .google-icon {
   display: flex;
   align-items: center;

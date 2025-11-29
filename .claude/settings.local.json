@@ -10,7 +10,8 @@
       "Bash(del favicon.ico logo192.png logo512.png)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
