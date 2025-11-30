@@ -125,19 +125,18 @@ function SpinningWheel({ theme = 'dark' }) {
     setRotation(totalRotation);
 
     setTimeout(() => {
+      // Normalize rotation to 0-360 range
       let normalizedRotation = totalRotation % 360;
       if (normalizedRotation < 0) normalizedRotation += 360;
 
+      // Calculate angle per segment
       const anglePerOption = 360 / options.length;
-      let selectedIndex = Math.floor(-normalizedRotation / anglePerOption);
 
-      while (selectedIndex < 0) {
-        selectedIndex += options.length;
-      }
-
-      selectedIndex = selectedIndex % options.length;
-
-      console.log('🎯 Selected index:', selectedIndex, '- Option:', options[selectedIndex].name);
+      // The pointer is at the top (0 degrees, 12 o'clock position)
+      // When wheel rotates clockwise, we need to reverse the calculation
+      // The segment now at pointer was originally at (360 - rotation)
+      const wherePointerPointsAngle = (360 - normalizedRotation) % 360;
+      let selectedIndex = Math.floor(wherePointerPointsAngle / anglePerOption) % options.length;
 
       let selectedOpt = options[selectedIndex];
 
