@@ -106,7 +106,10 @@ function SpinningWheel({ theme = 'dark' }) {
   const spinWheel = () => {
     if (isSpinning || options.length === 0) return;
 
-    const availableOptions = options.filter(opt => opt.timesSelected < opt.maxSelections);
+    const availableOptions = options
+      .map((option, index) => ({ ...option, index }))
+      .filter(opt => opt.timesSelected < opt.maxSelections);
+
     if (availableOptions.length === 0) {
       alert('All options have been used up! Please reset or add new options.');
       return;
@@ -115,39 +118,38 @@ function SpinningWheel({ theme = 'dark' }) {
     setIsSpinning(true);
     setSelectedOption(null);
 
+    // 1. First, decide who the winner is from the available options
+    const winner = availableOptions[Math.floor(Math.random() * availableOptions.length)];
+    const winningIndex = winner.index;
+
+    // 2. Then, calculate the rotation to land on the winner
+    const anglePerOption = 360 / options.length;
+
+    // Calculate the target angle. The pointer is at 12 o'clock.
+    // We add a small random offset so it doesn't stop at the exact same spot every time.
+    const randomOffset = (Math.random() - 0.5) * anglePerOption * 0.8;
+    const targetSegmentCenter = winningIndex * anglePerOption;
+    const targetAngle = targetSegmentCenter + randomOffset;
+
+    // This is the final angle (0-360) we want the wheel to be rotated to.
+    const finalRotationAngle = (360 - targetAngle) % 360;
+
+    // Add multiple spins for visual effect
     const minSpins = 5;
     const maxSpins = 10;
-    const randomSpins = minSpins + Math.random() * (maxSpins - minSpins);
-    const randomDegrees = randomSpins * 360;
-    const extraRotation = Math.random() * 360;
-    const totalRotation = rotation + randomDegrees + extraRotation;
-
+    const randomSpins = Math.floor(minSpins + Math.random() * (maxSpins - minSpins));
+    
+    // Calculate a total rotation that will result in `finalRotationAngle` after the modulo.
+    // This ensures the wheel always spins forward and completes full spins before landing.
+    const currentVisualRotation = rotation % 360;
+    const totalRotation = rotation - currentVisualRotation + (randomSpins * 360) + finalRotationAngle;
+    
     setRotation(totalRotation);
 
+    // 3. After the animation, update the state with the pre-determined winner
     setTimeout(() => {
-      // Normalize rotation to 0-360 range
-      let normalizedRotation = totalRotation % 360;
-      if (normalizedRotation < 0) normalizedRotation += 360;
-
-      // Calculate angle per segment
-      const anglePerOption = 360 / options.length;
-
-      // Calculate which segment is at the pointer (top, 0 degrees)
-      // The pointer is at top (0°). When wheel rotates clockwise by normalizedRotation,
-      // the segment at position normalizedRotation is now at the pointer.
-      let selectedIndex = Math.floor(normalizedRotation / anglePerOption) % options.length;
-
-      let selectedOpt = options[selectedIndex];
-
-      let attempts = 0;
-      while (selectedOpt.timesSelected >= selectedOpt.maxSelections && attempts < options.length) {
-        selectedIndex = (selectedIndex + 1) % options.length;
-        selectedOpt = options[selectedIndex];
-        attempts++;
-      }
-
       const updatedOptions = options.map((opt, idx) => {
-        if (idx === selectedIndex && opt.timesSelected < opt.maxSelections) {
+        if (idx === winningIndex) {
           return {
             ...opt,
             timesSelected: opt.timesSelected + 1
@@ -157,7 +159,7 @@ function SpinningWheel({ theme = 'dark' }) {
       });
 
       setOptions(updatedOptions);
-      setSelectedOption(selectedOpt.name);
+      setSelectedOption(options[winningIndex].name);
       setIsSpinning(false);
     }, 4000);
   };
