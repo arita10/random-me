@@ -132,39 +132,10 @@ function SpinningWheel({ theme = 'dark' }) {
       // Calculate angle per segment
       const anglePerOption = 360 / options.length;
 
-      // ===== DEBUGGING WHEEL ALIGNMENT =====
-      console.log('🎯 WHEEL STOPPED');
-      console.log('Rotation:', normalizedRotation.toFixed(2) + '°');
-      console.log('Angle per segment:', anglePerOption.toFixed(2) + '°');
-      console.log('');
-      console.log('TESTING ALL OPTIONS:');
-
-      // Show all segments and their current positions after rotation
-      for (let i = 0; i < options.length; i++) {
-        const originalPosition = i * anglePerOption;
-        const currentPosition = (originalPosition + normalizedRotation) % 360;
-        const distanceFromPointer = Math.min(
-          Math.abs(currentPosition - 0),
-          Math.abs(currentPosition - 360)
-        );
-        console.log(`  [${i}] ${options[i].name}: originally ${originalPosition.toFixed(1)}°, now at ${currentPosition.toFixed(1)}°, distance from pointer: ${distanceFromPointer.toFixed(1)}°`);
-      }
-
-      console.log('');
-      console.log('FORMULA TESTS:');
-      const testA = Math.floor((360 - normalizedRotation) / anglePerOption) % options.length;
-      const testB = Math.floor(normalizedRotation / anglePerOption) % options.length;
-      const testC = Math.floor((360 - normalizedRotation + anglePerOption/2) / anglePerOption) % options.length;
-      console.log(`  Formula A (360-rot): Index ${testA} = ${options[testA].name}`);
-      console.log(`  Formula B (rot): Index ${testB} = ${options[testB].name}`);
-      console.log(`  Formula C (360-rot+half): Index ${testC} = ${options[testC].name}`);
-      console.log('');
-      console.log('👁️  LOOK AT THE WHEEL: Which option is the pointer pointing at?');
-      console.log('');
-
-      // Use Formula A for now
-      let selectedIndex = Math.floor((360 - normalizedRotation) / anglePerOption) % options.length;
-      console.log('📢 SHOWING RESULT:', options[selectedIndex].name, '(using Formula A)');
+      // Calculate which segment is at the pointer (top, 0 degrees)
+      // The pointer is at top (0°). When wheel rotates clockwise by normalizedRotation,
+      // the segment at position normalizedRotation is now at the pointer.
+      let selectedIndex = Math.floor(normalizedRotation / anglePerOption) % options.length;
 
       let selectedOpt = options[selectedIndex];
 
