@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 function Footer() {
@@ -21,20 +22,20 @@ function Footer() {
           <div className="footer-section">
             <h4 className="footer-heading">Selection Tools</h4>
             <ul className="footer-links">
-              <li><a href="/wheel">🎡 Spinning Wheel</a></li>
-              <li><a href="/cards">🃏 Card Selector</a></li>
-              <li><a href="/dice">🎲 Dice Roller</a></li>
-              <li><a href="/color">🎨 Color Picker</a></li>
+              <li><Link to="/wheel">🎡 Spinning Wheel</Link></li>
+              <li><Link to="/cards">🃏 Card Selector</Link></li>
+              <li><Link to="/dice">🎲 Dice Roller</Link></li>
+              <li><Link to="/color">🎨 Color Picker</Link></li>
             </ul>
           </div>
 
           <div className="footer-section">
             <h4 className="footer-heading">Games & Tools</h4>
             <ul className="footer-links">
-              <li><a href="/coin-flip">🪙 Coin Flip</a></li>
-              <li><a href="/rps">✊ Rock Paper Scissors</a></li>
-              <li><a href="/matching-game">🎴 Matching Game</a></li>
-              <li><a href="/team-assignment">👥 Team Assignment</a></li>
+              <li><Link to="/coin-flip">🪙 Coin Flip</Link></li>
+              <li><Link to="/rps">✊ Rock Paper Scissors</Link></li>
+              <li><Link to="/matching-game">🎴 Matching Game</Link></li>
+              <li><Link to="/team-assignment">👥 Team Assignment</Link></li>
             </ul>
           </div>
 
