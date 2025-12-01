@@ -48,14 +48,9 @@ function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://random-me-rho.vercel.app" target="_blank" rel="noopener noreferrer">
+                <Link to="/" aria-label="Visit homepage">
                   🌐 Website
-                </a>
-              </li>
-              <li>
-                <a href="https://github.com/arita10/random-me" target="_blank" rel="noopener noreferrer">
-                  💻 GitHub Repository
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
