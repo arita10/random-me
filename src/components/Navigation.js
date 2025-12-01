@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { signInWithGoogle, signOutUser } from '../firebase';
-import LanguageSwitcher from './LanguageSwitcher';
 import './Navigation.css';
 
 function Navigation({ darkMode, user, toggleDarkMode }) {
@@ -96,7 +95,6 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
         </div>
 
         <div className="nav-actions">
-          <LanguageSwitcher />
           <button
             onClick={toggleDarkMode}
             className="theme-toggle-btn"
