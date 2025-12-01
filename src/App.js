@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { initGA, logPageView } from './utils/analytics';
 import './App.css';
 
 // Import components
@@ -19,9 +20,25 @@ import LandingPage from './components/LandingPage';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 
+// Google Analytics page tracking component
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    logPageView(location.pathname + location.search);
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [user, setUser] = useState(null);
+
+  // Initialize Google Analytics
+  useEffect(() => {
+    initGA();
+  }, []);
 
   // Track user authentication
   useEffect(() => {
@@ -57,6 +74,7 @@ function App() {
 
   return (
     <Router>
+      <AnalyticsTracker />
       <div className={`app-container ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
         <Navigation
           darkMode={darkMode}
