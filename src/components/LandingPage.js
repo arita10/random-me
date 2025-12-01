@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './LandingPage.css';
+import { useTranslation, Trans } from 'react-i18next';
 
 function LandingPage() {
+  const { t } = useTranslation();
   const features = [
     {
       icon: '🎡',
@@ -76,23 +78,24 @@ function LandingPage() {
       <section className="hero" aria-label="Welcome to Random Selector">
         <div className="hero-content">
           <div className="hero-badge">
-            <span className="badge-text">✨ Free & Easy to Use</span>
+            <span className="badge-text">{t('hero_badge')}</span>
           </div>
           <h1 className="hero-title">
-            Make Random Decisions
-            <span className="gradient-text"> Effortlessly</span>
+            <Trans i18nKey="hero_title">
+              Make Random Decisions
+              <span className="gradient-text"> Effortlessly</span>
+            </Trans>
           </h1>
           <p className="hero-subtitle">
-            The ultimate random selection toolkit for choosing winners, making decisions, 
-            and adding fun to your daily choices. No signup required.
+            {t('hero_subtitle')}
           </p>
           <div className="hero-actions">
             <Link to="/wheel" className="btn btn-primary">
-              Get Started
+              {t('hero_cta_primary')}
               <span className="btn-icon">→</span>
             </Link>
             <a href="#features" className="btn btn-secondary">
-              Explore Features
+              {t('hero_cta_secondary')}
             </a>
           </div>
         </div>
