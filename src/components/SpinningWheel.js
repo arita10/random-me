@@ -194,11 +194,11 @@ function SpinningWheel({ theme = 'dark' }) {
     setError('');
   };
 
-  const handleDeleteWheel = async (wheelId) => {
+  const handleDeleteWheel = async (wheel) => {
     if (!window.confirm('Delete this wheel?')) return;
 
     try {
-      await deleteWheel(wheelId);
+      await deleteWheel(user.uid, wheel.name);
       if (user) {
         loadUserWheels(user.uid);
       }
@@ -473,7 +473,7 @@ function SpinningWheel({ theme = 'dark' }) {
                         <span className="saved-count">{wheel.options.length} options</span>
                       </div>
                       <button
-                        onClick={() => handleDeleteWheel(wheel.id)}
+                        onClick={() => handleDeleteWheel(wheel)}
                         className="btn-icon-danger"
                       >
                         🗑️
