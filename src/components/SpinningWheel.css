@@ -775,19 +775,34 @@
   }
 
   .number-input-wrapper {
-    min-height: 44px;
+    min-height: 48px;
+    justify-content: space-between;
   }
 
   .max-selections-input {
     flex: 1;
-    min-height: 44px;
+    min-height: 48px;
+    font-size: 1.1rem;
+    font-weight: 600;
     touch-action: manipulation;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  /* Hide spinner arrows on mobile */
+  .max-selections-input::-webkit-outer-spin-button,
+  .max-selections-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .number-btn {
-    min-width: 50px;
-    padding: 11px 16px;
-    font-size: 1.2rem;
+    min-width: 48px;
+    max-width: 48px;
+    padding: 12px 8px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    flex-shrink: 0;
   }
 }
 
@@ -835,5 +850,22 @@
 
   .option-counter {
     font-size: 0.75rem;
+  }
+
+  .number-input-wrapper {
+    min-height: 44px;
+  }
+
+  .max-selections-input {
+    min-height: 44px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .number-btn {
+    min-width: 44px;
+    max-width: 44px;
+    padding: 10px 6px;
+    font-size: 1.3rem;
   }
 }
