@@ -195,13 +195,16 @@ function SpinningWheel({ theme = 'dark' }) {
   };
 
   const handleDeleteWheel = async (wheel) => {
+    if (!user) {
+      setError('You must be logged in to delete wheels');
+      return;
+    }
+
     if (!window.confirm('Delete this wheel?')) return;
 
     try {
-      await deleteWheel(user.uid, wheel.name);
-      if (user) {
-        loadUserWheels(user.uid);
-      }
+      await deleteWheel(wheel.id);
+      loadUserWheels(user.uid);
       alert('Wheel deleted');
     } catch (error) {
       console.error('Error deleting wheel:', error);

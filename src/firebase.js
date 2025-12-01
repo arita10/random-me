@@ -102,16 +102,10 @@ export const getUserWheels = async (userId) => {
 };
 
 // Delete wheel
-export const deleteWheel = async (userId, name) => {
+export const deleteWheel = async (wheelId) => {
   try {
-    const q = query(
-      collection(db, 'wheels'),
-      where('userId', '==', userId),
-      where('name', '==', name)
-    );
-    const snapshot = await getDocs(q);
-    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(deletePromises);
+    const wheelRef = doc(db, 'wheels', wheelId);
+    await deleteDoc(wheelRef);
   } catch (error) {
     console.error("Error deleting wheel:", error);
     throw error;
