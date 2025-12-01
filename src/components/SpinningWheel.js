@@ -362,17 +362,31 @@ function SpinningWheel({ theme = 'dark' }) {
                     placeholder="Max uses"
                     value={maxSelections}
                     min="1"
-                    max="99"
-                    onChange={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
-                    onInput={(e) => setMaxSelections(parseInt(e.target.value) || 1)}
+                    max="999"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || val === null) {
+                        setMaxSelections('');
+                      } else {
+                        const num = parseInt(val);
+                        if (num >= 1 && num <= 999) {
+                          setMaxSelections(num);
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                        setMaxSelections(1);
+                      }
+                    }}
                     className="max-selections-input"
                     disabled={!isLimitEnabled}
                     inputMode="numeric"
                   />
                   <button
                     className="number-btn"
-                    onClick={() => setMaxSelections(Math.min(99, maxSelections + 1))}
-                    disabled={!isLimitEnabled || maxSelections >= 99}
+                    onClick={() => setMaxSelections(Math.min(999, (maxSelections || 0) + 1))}
+                    disabled={!isLimitEnabled || maxSelections >= 999}
                     type="button"
                   >
                     ▲

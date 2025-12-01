@@ -336,8 +336,8 @@
 }
 
 .max-selections-input {
-  width: 90px;
-  padding: 11px;
+  width: 100px;
+  padding: 11px 8px;
   font-size: 0.95rem;
   border: none;
   border-left: 1px solid rgba(200, 200, 200, 0.5);
