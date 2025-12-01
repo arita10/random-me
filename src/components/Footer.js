@@ -19,29 +19,43 @@ function Footer() {
           </div>
 
           <div className="footer-section">
-            <h4 className="footer-heading">Quick Links</h4>
+            <h4 className="footer-heading">Selection Tools</h4>
             <ul className="footer-links">
-              <li><a href="/wheel">Spinning Wheel</a></li>
-              <li><a href="/dice">Dice Roller</a></li>
-              <li><a href="/cards">Card Selector</a></li>
+              <li><a href="/wheel">🎡 Spinning Wheel</a></li>
+              <li><a href="/cards">🃏 Card Selector</a></li>
+              <li><a href="/dice">🎲 Dice Roller</a></li>
+              <li><a href="/color">🎨 Color Picker</a></li>
             </ul>
           </div>
 
           <div className="footer-section">
-            <h4 className="footer-heading">Resources</h4>
+            <h4 className="footer-heading">Games & Tools</h4>
             <ul className="footer-links">
-              <li><a href="#how-to-use">How to Use</a></li>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#privacy">Privacy Policy</a></li>
+              <li><a href="/coin-flip">🪙 Coin Flip</a></li>
+              <li><a href="/rps">✊ Rock Paper Scissors</a></li>
+              <li><a href="/matching-game">🎴 Matching Game</a></li>
+              <li><a href="/team-assignment">👥 Team Assignment</a></li>
             </ul>
           </div>
 
           <div className="footer-section">
-            <h4 className="footer-heading">Connect</h4>
+            <h4 className="footer-heading">Contact Us</h4>
             <ul className="footer-links">
-              <li><a href="#feedback">Send Feedback</a></li>
-              <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li>
+                <a href="mailto:randommecon12@gmail.com" aria-label="Email us">
+                  📧 randommecon12@gmail.com
+                </a>
+              </li>
+              <li>
+                <a href="https://random-me.vercel.app" target="_blank" rel="noopener noreferrer">
+                  🌐 Website
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/arita10/random-me" target="_blank" rel="noopener noreferrer">
+                  💻 GitHub Repository
+                </a>
+              </li>
             </ul>
           </div>
         </div>

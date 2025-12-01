@@ -59,6 +59,14 @@ function LandingPage() {
       path: '/rps',
       color: '#3b82f6',
       category: 'Games'
+    },
+    {
+      icon: '🎴',
+      title: 'Matching Game',
+      description: 'Test your memory with this fun card matching game',
+      path: '/matching-game',
+      color: '#14b8a6',
+      category: 'Games'
     }
   ];
 
@@ -103,7 +111,7 @@ function LandingPage() {
         <header className="section-header">
           <h2 className="section-title">All Random Tools in One Place</h2>
           <p className="section-subtitle">
-            Seven powerful tools to help you make fair and random decisions
+            Eight powerful tools to help you make fair and random decisions
           </p>
         </header>
 
