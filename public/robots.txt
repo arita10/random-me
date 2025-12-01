@@ -5,7 +5,7 @@ Disallow: /admin
 Disallow: /api
 
 # Sitemap location
-Sitemap: https://random-me.vercel.app/sitemap.xml
+Sitemap: https://random-me-rho.vercel.app/sitemap.xml
 
 # Crawl delay (optional - 1 second between requests)
 Crawl-delay: 1
