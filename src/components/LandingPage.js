@@ -63,9 +63,9 @@ function LandingPage() {
   ];
 
   return (
-    <div className="landing-page">
+    <main className="landing-page" role="main">
       {/* Hero Section */}
-      <section className="hero">
+      <section className="hero" aria-label="Welcome to Random Selector">
         <div className="hero-content">
           <div className="hero-badge">
             <span className="badge-text">✨ Free & Easy to Use</span>
@@ -99,22 +99,22 @@ function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="features">
-        <div className="section-header">
+      <section id="features" className="features" aria-label="Random selection tools and features">
+        <header className="section-header">
           <h2 className="section-title">All Random Tools in One Place</h2>
           <p className="section-subtitle">
             Seven powerful tools to help you make fair and random decisions
           </p>
-        </div>
+        </header>
 
         <div className="features-grid">
           {features.map((feature, index) => (
-            <Link
-              to={feature.path}
+            <article
               key={index}
               className="feature-card"
               style={{'--feature-color': feature.color}}
             >
+              <Link to={feature.path} aria-label={`Go to ${feature.title}`}>
               <div className="feature-category">{feature.category}</div>
               <div className="feature-icon">{feature.icon}</div>
               <h3 className="feature-title">{feature.title}</h3>
@@ -123,13 +123,14 @@ function LandingPage() {
                 Try it now
                 <span className="link-arrow">→</span>
               </div>
-            </Link>
+              </Link>
+            </article>
           ))}
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="benefits">
+      <section className="benefits" aria-label="Key benefits and features">
         <div className="benefits-grid">
           <div className="benefit-item">
             <div className="benefit-icon">⚡</div>
@@ -165,7 +166,7 @@ function LandingPage() {
       </section>
 
       {/* Use Cases Section */}
-      <section className="use-cases">
+      <section className="use-cases" aria-label="Common use cases">
         <h2 className="section-title">Perfect For...</h2>
         <div className="use-cases-grid">
           <div className="use-case">
@@ -204,7 +205,7 @@ function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="cta">
+      <section className="cta" aria-label="Call to action">
         <div className="cta-content">
           <h2 className="cta-title">Ready to make your choice?</h2>
           <p className="cta-subtitle">Start using Random Selector now - no signup required</p>
@@ -214,7 +215,7 @@ function LandingPage() {
           </Link>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
 
