@@ -1,6 +1,6 @@
 {
   "name": "spinning-wheel-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A fun spinning wheel game built with React",
   "private": true,
   "dependencies": {
