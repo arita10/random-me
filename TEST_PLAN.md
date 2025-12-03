@@ -69,6 +69,28 @@
 - [ ] Open in new window
 - [ ] Verify all items loaded from URL
 
+### 8. Fortune Sticks Feature ✅
+- [ ] Navigate to "Fortune Sticks" from menu
+- [ ] Add 5-10 choices using the input form
+- [ ] Verify choices appear in the list
+- [ ] Verify choices appear as sticks in bottle
+- [ ] Click "Shake" button
+- [ ] Verify bottle shakes with animation
+- [ ] Verify shake sounds play (if unmuted)
+- [ ] Verify one stick falls out with animation
+- [ ] Verify result displays after falling animation
+- [ ] Click "Shake Again" to reset
+- [ ] Verify can shake multiple times
+- [ ] Delete individual choices
+- [ ] Verify deleted choices disappear from bottle
+- [ ] Click mute button
+- [ ] Shake again and verify no sounds
+- [ ] Click "Clear All" button
+- [ ] Verify all choices cleared
+- [ ] Refresh page
+- [ ] Verify choices persisted (localStorage)
+- [ ] Test on mobile view - verify bottle is visible and shake button is accessible
+
 ## Expected Results
 
 All features should work smoothly:
@@ -78,6 +100,9 @@ All features should work smoothly:
 - ✅ Thai presets load instantly
 - ✅ Share URLs work correctly
 - ✅ Sounds play and mute works
+- ✅ Fortune Sticks shake animation is smooth
+- ✅ Stick falling animation works properly
+- ✅ Fortune Sticks choices persist in localStorage
 
 ## Browser Compatibility
 

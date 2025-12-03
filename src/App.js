@@ -14,6 +14,7 @@ import ColorPicker from './components/ColorPicker';
 import CoinFlip from './components/CoinFlip';
 import RockPaperScissors from './components/RockPaperScissors';
 import MatchingGame from './components/MatchingGame';
+import FortuneSticks from './components/FortuneSticks';
 
 // UI Components
 import LandingPage from './components/LandingPage';
@@ -90,6 +91,7 @@ function App() {
             <Route path="/cards" element={<CardSelector theme={theme} />} />
             <Route path="/dice" element={<DiceRoller theme={theme} />} />
             <Route path="/color" element={<ColorPicker theme={theme} />} />
+            <Route path="/fortune-sticks" element={<FortuneSticks theme={theme} />} />
             {/* Games */}
             <Route path="/coin-flip" element={<CoinFlip theme={theme} />} />
             <Route path="/rps" element={<RockPaperScissors theme={theme} />} />

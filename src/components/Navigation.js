@@ -32,6 +32,7 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
       icon: '🎯',
       items: [
         { path: '/wheel', icon: '🎡', label: 'Spinning Wheel' },
+        { path: '/fortune-sticks', icon: '🥢', label: 'Fortune Sticks' },
         { path: '/cards', icon: '🃏', label: 'Card Selector' },
         { path: '/dice', icon: '🎲', label: 'Dice Roller' },
         { path: '/color', icon: '🎨', label: 'Color Picker' }
