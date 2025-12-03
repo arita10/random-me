@@ -38,6 +38,8 @@ function SpinningWheel({ theme = 'dark' }) {
   const [savedWheels, setSavedWheels] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
   const [error, setError] = useState('');
+  const [bulkInput, setBulkInput] = useState('');
+  const [showBulkInput, setShowBulkInput] = useState(false);
 
   // ============================================
   // EFFECTS
@@ -55,6 +57,34 @@ function SpinningWheel({ theme = 'dark' }) {
 
     return () => unsubscribe();
   }, []);
+
+  // Load options from localStorage on mount
+  useEffect(() => {
+    const savedOptions = localStorage.getItem('wheelOptions');
+    const savedWheelName = localStorage.getItem('wheelName');
+
+    if (savedOptions) {
+      try {
+        setOptions(JSON.parse(savedOptions));
+      } catch (error) {
+        console.error('Error loading saved options:', error);
+      }
+    }
+
+    if (savedWheelName) {
+      setWheelName(savedWheelName);
+    }
+  }, []);
+
+  // Save options to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('wheelOptions', JSON.stringify(options));
+  }, [options]);
+
+  // Save wheel name to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('wheelName', wheelName);
+  }, [wheelName]);
 
   // ============================================
   // WHEEL FUNCTIONS
@@ -86,6 +116,69 @@ function SpinningWheel({ theme = 'dark' }) {
       };
       setOptions([...options, newOptionObj]);
       setNewOption('');
+    }
+  };
+
+  const handleBulkAdd = () => {
+    if (bulkInput.trim() === '') return;
+
+    // Split by newlines, commas, or semicolons and filter empty strings
+    const items = bulkInput
+      .split(/[\n,;]+/)
+      .map(item => item.trim())
+      .filter(item => item !== '');
+
+    const newOptions = items.map(item => ({
+      name: item,
+      maxSelections: isLimitEnabled ? maxSelections : Infinity,
+      timesSelected: 0
+    }));
+
+    setOptions([...options, ...newOptions]);
+    setBulkInput('');
+    setShowBulkInput(false);
+  };
+
+  const loadPreset = (presetName) => {
+    const presets = {
+      thaiFood: [
+        'ข้าวผัดกระเพรา (Pad Kra Pao)',
+        'ก๋วยเตี๋ยวเนื้อ (Noodle Soup)',
+        'ชาบู (Shabu)',
+        'หมูกระทะ (Mookrata)',
+        'ส้มตำ (Som Tum)',
+        'ผัดไทย (Pad Thai)',
+        'ข้าวมันไก่ (Chicken Rice)',
+        'ต้มยำกุ้ง (Tom Yum)'
+      ],
+      party: [
+        'Truth',
+        'Dare',
+        'Drink 🍺',
+        'Dance 💃',
+        'Sing 🎤',
+        'Skip Turn',
+        'Choose Someone',
+        'Wild Card 🎲'
+      ],
+      lottery: Array.from({ length: 100 }, (_, i) => String(i).padStart(2, '0')),
+      numbers: Array.from({ length: 100 }, (_, i) => String(i + 1))
+    };
+
+    const preset = presets[presetName];
+    if (preset) {
+      const newOptions = preset.map(item => ({
+        name: item,
+        maxSelections: Infinity,
+        timesSelected: 0
+      }));
+      setOptions(newOptions);
+      setWheelName(
+        presetName === 'thaiFood' ? 'Thai Food 🍜' :
+        presetName === 'party' ? 'Party Games 🎉' :
+        presetName === 'lottery' ? 'Lottery (00-99) 🎰' :
+        'Numbers (1-100) 🔢'
+      );
     }
   };
 
@@ -395,6 +488,39 @@ function SpinningWheel({ theme = 'dark' }) {
                 <button onClick={handleAddOption}>Add Option</button>
               </div>
 
+              <button
+                onClick={() => setShowBulkInput(!showBulkInput)}
+                className="bulk-input-toggle"
+              >
+                📋 {showBulkInput ? 'Hide' : 'Bulk Add (Paste List)'}
+              </button>
+
+              {showBulkInput && (
+                <div className="bulk-input-container">
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="Paste your list here (one item per line, or comma-separated)&#10;Example:&#10;Pizza&#10;Burger&#10;Sushi"
+                    className="bulk-input-textarea"
+                    rows="6"
+                  />
+                  <div className="bulk-input-actions">
+                    <button onClick={handleBulkAdd} className="btn-primary">
+                      ✅ Add All Items
+                    </button>
+                    <button
+                      onClick={() => {
+                        setBulkInput('');
+                        setShowBulkInput(false);
+                      }}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="limit-checkbox">
                 <label>
                   <input
@@ -404,6 +530,25 @@ function SpinningWheel({ theme = 'dark' }) {
                   />
                   <span>Set selection limit (uncheck for unlimited)</span>
                 </label>
+              </div>
+            </div>
+
+            {/* Thai Presets Section */}
+            <div className="presets-section">
+              <h4 className="presets-title">🇹🇭 Quick Load Presets (Thailand)</h4>
+              <div className="presets-grid">
+                <button onClick={() => loadPreset('thaiFood')} className="preset-btn">
+                  🍜 Thai Food
+                </button>
+                <button onClick={() => loadPreset('party')} className="preset-btn">
+                  🎉 Party Games
+                </button>
+                <button onClick={() => loadPreset('lottery')} className="preset-btn">
+                  🎰 Lottery (00-99)
+                </button>
+                <button onClick={() => loadPreset('numbers')} className="preset-btn">
+                  🔢 Numbers (1-100)
+                </button>
               </div>
             </div>
 
