@@ -1,23 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './FortuneSticks.css';
 
 function FortuneSticks() {
+  const [user, setUser] = useState(null);
   const [sticks, setSticks] = useState([]);
   const [newStick, setNewStick] = useState('');
   const [isShaking, setIsShaking] = useState(false);
   const [selectedStick, setSelectedStick] = useState(null);
   const [fallingStick, setFallingStick] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [bottleName, setBottleName] = useState('Fortune Sticks');
+  const [savedBottles, setSavedBottles] = useState([]);
+  const [showSaved, setShowSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  // Track user authentication
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        loadSavedBottles(currentUser.uid);
+      } else {
+        setSavedBottles([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Load sticks from localStorage on mount
   useEffect(() => {
     const savedSticks = localStorage.getItem('fortuneSticks');
+    const savedBottleName = localStorage.getItem('bottleName');
     if (savedSticks) {
       try {
         setSticks(JSON.parse(savedSticks));
       } catch (error) {
         console.error('Error loading saved sticks:', error);
       }
+    }
+    if (savedBottleName) {
+      setBottleName(savedBottleName);
     }
   }, []);
 
@@ -27,6 +54,30 @@ function FortuneSticks() {
       localStorage.setItem('fortuneSticks', JSON.stringify(sticks));
     }
   }, [sticks]);
+
+  // Save bottle name to localStorage
+  useEffect(() => {
+    localStorage.setItem('bottleName', bottleName);
+  }, [bottleName]);
+
+  const loadSavedBottles = async (userId) => {
+    if (!userId) return;
+
+    try {
+      const q = query(
+        collection(db, 'fortuneBottles'),
+        where('userId', '==', userId)
+      );
+      const snapshot = await getDocs(q);
+      const bottles = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSavedBottles(bottles);
+    } catch (error) {
+      console.error('Error loading bottles:', error);
+    }
+  };
 
   const handleAddStick = (e) => {
     e.preventDefault();
@@ -126,6 +177,73 @@ function FortuneSticks() {
       setFallingStick(null);
       localStorage.removeItem('fortuneSticks');
     }
+  };
+
+  const handleSaveBottle = async () => {
+    if (!user) {
+      setError('Please sign in to save bottles');
+      return;
+    }
+
+    if (!bottleName.trim()) {
+      setError('Please enter a bottle name');
+      return;
+    }
+
+    if (sticks.length === 0) {
+      setError('Please add some choices before saving');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'fortuneBottles'), {
+        userId: user.uid,
+        name: bottleName,
+        sticks: sticks,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      setError('');
+      alert('Bottle saved successfully! ✅');
+      loadSavedBottles(user.uid);
+    } catch (error) {
+      console.error('Error saving bottle:', error);
+      setError('Failed to save bottle');
+    }
+  };
+
+  const handleLoadBottle = (bottle) => {
+    setBottleName(bottle.name);
+    setSticks(bottle.sticks);
+    setSelectedStick(null);
+    setFallingStick(null);
+    setShowSaved(false);
+    setError('');
+  };
+
+  const handleDeleteBottle = async (bottleId) => {
+    if (!window.confirm('Delete this bottle?')) return;
+
+    try {
+      await deleteDoc(doc(db, 'fortuneBottles', bottleId));
+      if (user) {
+        loadSavedBottles(user.uid);
+      }
+      alert('Bottle deleted');
+    } catch (error) {
+      console.error('Error deleting bottle:', error);
+      setError('Failed to delete bottle');
+    }
+  };
+
+  const handleReset = () => {
+    setSticks([]);
+    setBottleName('Fortune Sticks');
+    setSelectedStick(null);
+    setFallingStick(null);
+    setError('');
+    localStorage.removeItem('fortuneSticks');
   };
 
   return (
@@ -260,6 +378,70 @@ function FortuneSticks() {
           </div>
         </div>
       </div>
+
+      {/* Save/Load Section */}
+      {user && (
+        <div className="save-section">
+          <div className="input-section">
+            <label className="input-label">Bottle Name / ชื่อขวด</label>
+            <input
+              type="text"
+              value={bottleName}
+              onChange={(e) => setBottleName(e.target.value)}
+              className="input-field"
+              placeholder="Enter bottle name..."
+              maxLength={100}
+            />
+          </div>
+
+          <div className="button-row">
+            <button onClick={handleSaveBottle} className="btn btn-secondary">
+              💾 Save / บันทึก
+            </button>
+            <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
+              📂 Load / โหลด
+            </button>
+            <button onClick={handleReset} className="btn btn-secondary">
+              🔄 Reset / รีเซ็ต
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
+
+          {/* Saved Bottles */}
+          {showSaved && (
+            <div className="saved-decks">
+              <h3 className="saved-title">Saved Bottles / ขวดที่บันทึก ({savedBottles.length})</h3>
+              {savedBottles.length === 0 ? (
+                <p className="empty-message">No saved bottles yet / ยังไม่มีขวดที่บันทึก</p>
+              ) : (
+                <div className="saved-list">
+                  {savedBottles.map((bottle) => (
+                    <div key={bottle.id} className="saved-item">
+                      <div onClick={() => handleLoadBottle(bottle)} className="saved-info">
+                        <span className="saved-name">{bottle.name}</span>
+                        <span className="saved-count">{bottle.sticks.length} choices / ตัวเลือก</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteBottle(bottle.id)}
+                        className="btn-icon-danger"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
