@@ -40,6 +40,9 @@ function SpinningWheel({ theme = 'dark' }) {
   const [error, setError] = useState('');
   const [bulkInput, setBulkInput] = useState('');
   const [showBulkInput, setShowBulkInput] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [showShareUrl, setShowShareUrl] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   // ============================================
   // EFFECTS
@@ -85,6 +88,28 @@ function SpinningWheel({ theme = 'dark' }) {
   useEffect(() => {
     localStorage.setItem('wheelName', wheelName);
   }, [wheelName]);
+
+  // Load from URL parameters on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const listParam = urlParams.get('list');
+
+    if (listParam) {
+      try {
+        const items = decodeURIComponent(listParam).split(',').filter(item => item.trim() !== '');
+        if (items.length > 0) {
+          const newOptions = items.map(item => ({
+            name: item.trim(),
+            maxSelections: Infinity,
+            timesSelected: 0
+          }));
+          setOptions(newOptions);
+        }
+      } catch (error) {
+        console.error('Error loading from URL:', error);
+      }
+    }
+  }, []);
 
   // ============================================
   // WHEEL FUNCTIONS
@@ -196,6 +221,83 @@ function SpinningWheel({ theme = 'dark' }) {
     setSelectedOption(null);
   };
 
+  const generateShareUrl = () => {
+    const optionNames = options.map(opt => opt.name).join(',');
+    const encodedList = encodeURIComponent(optionNames);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?list=${encodedList}`;
+    setShareUrl(url);
+    setShowShareUrl(true);
+  };
+
+  const copyShareUrl = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('✅ Link copied to clipboard! Share it with your friends.');
+    }).catch(() => {
+      alert('❌ Failed to copy link. Please copy it manually.');
+    });
+  };
+
+  const playTickSound = () => {
+    if (isMuted) return;
+
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.05);
+    } catch (error) {
+      console.log('Audio not supported');
+    }
+  };
+
+  const playWinSound = () => {
+    if (isMuted) return;
+
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 523.25; // C5
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      // Second note
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.value = 659.25; // E5
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.3, audioContext.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.45);
+      osc2.start(audioContext.currentTime + 0.15);
+      osc2.stop(audioContext.currentTime + 0.45);
+    } catch (error) {
+      console.log('Audio not supported');
+    }
+  };
+
   const spinWheel = () => {
     if (isSpinning || options.length === 0) return;
 
@@ -210,6 +312,11 @@ function SpinningWheel({ theme = 'dark' }) {
 
     setIsSpinning(true);
     setSelectedOption(null);
+
+    // Play ticking sound during spin
+    const tickInterval = setInterval(() => {
+      playTickSound();
+    }, 100);
 
     // 1. First, decide who the winner is from the available options
     const winner = availableOptions[Math.floor(Math.random() * availableOptions.length)];
@@ -241,6 +348,9 @@ function SpinningWheel({ theme = 'dark' }) {
 
     // 3. After the animation, update the state with the pre-determined winner
     setTimeout(() => {
+      clearInterval(tickInterval); // Stop ticking sound
+      playWinSound(); // Play winner sound
+
       const updatedOptions = options.map((opt, idx) => {
         if (idx === winningIndex) {
           return {
@@ -405,13 +515,22 @@ function SpinningWheel({ theme = 'dark' }) {
         </div>
       </div>
 
-      <button
-        onClick={spinWheel}
-        disabled={isSpinning || options.length === 0}
-        className="spin-button"
-      >
-        {isSpinning ? 'Spinning...' : 'SPIN THE WHEEL!'}
-      </button>
+      <div className="spin-controls">
+        <button
+          onClick={spinWheel}
+          disabled={isSpinning || options.length === 0}
+          className="spin-button"
+        >
+          {isSpinning ? 'Spinning...' : 'SPIN THE WHEEL!'}
+        </button>
+        <button
+          onClick={() => setIsMuted(!isMuted)}
+          className="mute-button"
+          title={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
+      </div>
 
       {selectedOption && !isSpinning && (
         <div className="result">
@@ -551,6 +670,25 @@ function SpinningWheel({ theme = 'dark' }) {
                 </button>
               </div>
             </div>
+
+            <button onClick={generateShareUrl} className="share-button">
+              🔗 Share This Wheel
+            </button>
+
+            {showShareUrl && (
+              <div className="share-url-container">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="share-url-input"
+                  onClick={(e) => e.target.select()}
+                />
+                <button onClick={copyShareUrl} className="copy-btn">
+                  📋 Copy Link
+                </button>
+              </div>
+            )}
 
             <button onClick={handleResetCounts} className="reset-button">
               🔄 Reset All Counts

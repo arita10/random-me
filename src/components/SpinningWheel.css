@@ -172,6 +172,15 @@
    BUTTON STYLES
    ============================================ */
 
+.spin-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
 .spin-button {
   padding: 14px 35px;
   font-size: 1.3rem;
@@ -183,8 +192,9 @@
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   transition: all 0.3s;
-  margin-bottom: 20px;
-  max-width: 90%;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
 }
 
 .spin-button:hover:not(:disabled) {
@@ -199,6 +209,27 @@
 .spin-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.mute-button {
+  width: 54px;
+  height: 54px;
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mute-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
 /* ============================================
@@ -530,6 +561,62 @@
 
 .preset-btn:active {
   transform: translateY(0);
+}
+
+/* Share Button Styles */
+.share-button {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  margin-bottom: 15px;
+}
+
+.share-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.share-url-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: stretch;
+}
+
+.share-url-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-family: monospace;
+}
+
+.copy-btn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #5568d3;
+  transform: scale(1.05);
 }
 
 .reset-button {
