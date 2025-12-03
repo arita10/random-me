@@ -38,6 +38,10 @@ function CardSelector({ theme = 'dark' }) {
   const [savedDecks, setSavedDecks] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
   const [error, setError] = useState('');
+  const [bulkInput, setBulkInput] = useState('');
+  const [showBulkInput, setShowBulkInput] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [showShareUrl, setShowShareUrl] = useState(false);
 
   // SWIPE STATE FOR CARDS
   const [swipeStart, setSwipeStart] = useState({ x: 0, y: 0 });
@@ -129,6 +133,81 @@ function CardSelector({ theme = 'dark' }) {
     // รีเซ็ตการ์ดที่พลิกด้วย
     setFlippedCards([]);
     setSelectedCardIndex(null);
+  };
+
+  const handleBulkAdd = () => {
+    if (bulkInput.trim() === '') return;
+
+    const items = bulkInput
+      .split(/[\n,;]+/)
+      .map(item => item.trim())
+      .filter(item => item !== '');
+
+    const newOptions = items.map(item => ({
+      name: item,
+      maxSelections: isCardLimitEnabled ? cardMaxSelections : Infinity,
+      timesSelected: 0
+    }));
+
+    setCardOptions([...cardOptions, ...newOptions]);
+    setBulkInput('');
+    setShowBulkInput(false);
+  };
+
+  const loadPreset = (presetName) => {
+    const presets = {
+      poker: [
+        'Ace ♠', 'King ♠', 'Queen ♠', 'Jack ♠', '10 ♠',
+        'Ace ♥', 'King ♥', 'Queen ♥', 'Jack ♥', '10 ♥',
+        'Ace ♦', 'King ♦', 'Queen ♦', 'Jack ♦', '10 ♦',
+        'Ace ♣', 'King ♣', 'Queen ♣', 'Jack ♣', '10 ♣'
+      ],
+      uno: [
+        'Red 0', 'Red 1', 'Red 2', 'Red Skip', 'Red Reverse',
+        'Blue 0', 'Blue 1', 'Blue 2', 'Blue Skip', 'Blue Reverse',
+        'Green 0', 'Green 1', 'Green 2', 'Green Skip', 'Green Reverse',
+        'Yellow 0', 'Yellow 1', 'Yellow 2', 'Yellow Skip', 'Yellow Reverse'
+      ],
+      tarot: [
+        'The Fool', 'The Magician', 'The High Priestess', 'The Empress',
+        'The Emperor', 'The Hierophant', 'The Lovers', 'The Chariot',
+        'Strength', 'The Hermit', 'Wheel of Fortune', 'Justice'
+      ],
+      numbers: Array.from({ length: 20 }, (_, i) => `Card ${i + 1}`)
+    };
+
+    const preset = presets[presetName];
+    if (preset) {
+      const newOptions = preset.map(item => ({
+        name: item,
+        maxSelections: 3,
+        timesSelected: 0
+      }));
+      setCardOptions(newOptions);
+      setDeckName(
+        presetName === 'poker' ? 'Poker Deck 🃏' :
+        presetName === 'uno' ? 'UNO Cards 🎴' :
+        presetName === 'tarot' ? 'Tarot Cards 🔮' :
+        'Numbered Cards 🔢'
+      );
+    }
+  };
+
+  const generateShareUrl = () => {
+    const cardNames = cardOptions.map(opt => opt.name).join(',');
+    const encodedList = encodeURIComponent(cardNames);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?list=${encodedList}`;
+    setShareUrl(url);
+    setShowShareUrl(true);
+  };
+
+  const copyShareUrl = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('✅ Link copied to clipboard! Share it with your friends.');
+    }).catch(() => {
+      alert('❌ Failed to copy link. Please copy it manually.');
+    });
   };
 
   // ============================================
@@ -391,6 +470,72 @@ function CardSelector({ theme = 'dark' }) {
                   </label>
                 </div>
               </div>
+
+              {/* Bulk Input Section */}
+              <button
+                onClick={() => setShowBulkInput(!showBulkInput)}
+                className="bulk-input-toggle"
+              >
+                📋 Bulk Add (Paste List)
+              </button>
+
+              {showBulkInput && (
+                <div className="bulk-input-container">
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="Paste your cards here (one per line, or comma/semicolon separated)&#10;Example:&#10;Ace of Spades&#10;King of Hearts&#10;Queen of Diamonds"
+                    className="bulk-input-textarea"
+                    rows="6"
+                  />
+                  <div className="bulk-input-actions">
+                    <button onClick={handleBulkAdd} className="btn-primary">
+                      ✅ Add All Cards
+                    </button>
+                    <button onClick={() => setShowBulkInput(false)} className="btn-secondary">
+                      ❌ Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Presets Section */}
+              <div className="presets-section">
+                <h4 className="presets-title">⚡ Quick Start Presets</h4>
+                <div className="presets-grid">
+                  <button onClick={() => loadPreset('poker')} className="preset-btn">
+                    🃏 Poker Deck
+                  </button>
+                  <button onClick={() => loadPreset('uno')} className="preset-btn">
+                    🎴 UNO Cards
+                  </button>
+                  <button onClick={() => loadPreset('tarot')} className="preset-btn">
+                    🔮 Tarot Cards
+                  </button>
+                  <button onClick={() => loadPreset('numbers')} className="preset-btn">
+                    🔢 Numbered Cards
+                  </button>
+                </div>
+              </div>
+
+              {/* Share Button */}
+              <button onClick={generateShareUrl} className="share-button">
+                🔗 Share This Deck
+              </button>
+
+              {showShareUrl && (
+                <div className="share-url-container">
+                  <input
+                    type="text"
+                    value={shareUrl}
+                    readOnly
+                    className="share-url-input"
+                  />
+                  <button onClick={copyShareUrl} className="copy-btn">
+                    📋 Copy Link
+                  </button>
+                </div>
+              )}
 
               <button onClick={handleResetCardCounts} className="reset-button">
                 🔄 Reset All Cards

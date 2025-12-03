@@ -17,6 +17,10 @@ function FortuneSticks() {
   const [savedBottles, setSavedBottles] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
   const [error, setError] = useState('');
+  const [bulkInput, setBulkInput] = useState('');
+  const [showBulkInput, setShowBulkInput] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [showShareUrl, setShowShareUrl] = useState(false);
 
   // Track user authentication
   useEffect(() => {
@@ -246,6 +250,76 @@ function FortuneSticks() {
     localStorage.removeItem('fortuneSticks');
   };
 
+  const handleBulkAdd = () => {
+    if (bulkInput.trim() === '') return;
+
+    const items = bulkInput
+      .split(/[\n,;]+/)
+      .map(item => item.trim())
+      .filter(item => item !== '');
+
+    const newSticks = items.map(item => ({
+      id: Date.now() + Math.random(),
+      text: item
+    }));
+
+    setSticks([...sticks, ...newSticks]);
+    setBulkInput('');
+    setShowBulkInput(false);
+  };
+
+  const loadPreset = (presetName) => {
+    const presets = {
+      zodiac: [
+        'Aries ♈', 'Taurus ♉', 'Gemini ♊', 'Cancer ♋',
+        'Leo ♌', 'Virgo ♍', 'Libra ♎', 'Scorpio ♏',
+        'Sagittarius ♐', 'Capricorn ♑', 'Aquarius ♒', 'Pisces ♓'
+      ],
+      yesNo: [
+        'Yes ✅', 'No ❌', 'Maybe 🤔', 'Definitely 💯',
+        'Probably 👍', 'Unlikely 👎', 'Ask Again 🔄', 'Not Sure 🤷'
+      ],
+      lucky: [
+        'Very Lucky 🍀', 'Lucky ✨', 'Neutral ⭐',
+        'Unlucky 🌧️', 'Very Unlucky ⚠️', 'Super Lucky 🎉',
+        'Good Fortune 🎊', 'Bad Fortune 💔'
+      ],
+      numbers: Array.from({ length: 20 }, (_, i) => `Number ${i + 1}`)
+    };
+
+    const preset = presets[presetName];
+    if (preset) {
+      const newSticks = preset.map(item => ({
+        id: Date.now() + Math.random(),
+        text: item
+      }));
+      setSticks(newSticks);
+      setBottleName(
+        presetName === 'zodiac' ? 'Zodiac Signs ♈' :
+        presetName === 'yesNo' ? 'Yes or No ❓' :
+        presetName === 'lucky' ? 'Fortune Telling 🔮' :
+        'Number Sticks 🔢'
+      );
+    }
+  };
+
+  const generateShareUrl = () => {
+    const stickTexts = sticks.map(stick => stick.text).join(',');
+    const encodedList = encodeURIComponent(stickTexts);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const url = `${baseUrl}?list=${encodedList}`;
+    setShareUrl(url);
+    setShowShareUrl(true);
+  };
+
+  const copyShareUrl = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('✅ Link copied to clipboard! Share it with your friends.');
+    }).catch(() => {
+      alert('❌ Failed to copy link. Please copy it manually.');
+    });
+  };
+
   return (
     <div className="fortune-sticks-container">
       <div className="fortune-sticks-header">
@@ -333,6 +407,72 @@ function FortuneSticks() {
               </button>
             </form>
           </div>
+
+          {/* Bulk Input Section */}
+          <button
+            onClick={() => setShowBulkInput(!showBulkInput)}
+            className="bulk-input-toggle"
+          >
+            📋 Bulk Add / เพิ่มเป็นชุด
+          </button>
+
+          {showBulkInput && (
+            <div className="bulk-input-container">
+              <textarea
+                value={bulkInput}
+                onChange={(e) => setBulkInput(e.target.value)}
+                placeholder="วางรายการที่นี่ (แต่ละบรรทัด หรือคั่นด้วยจุลภาค/อัฒภาค)&#10;Paste your list here (one per line, or comma/semicolon separated)"
+                className="bulk-input-textarea"
+                rows="6"
+              />
+              <div className="bulk-input-actions">
+                <button onClick={handleBulkAdd} className="btn-primary">
+                  ✅ Add All / เพิ่มทั้งหมด
+                </button>
+                <button onClick={() => setShowBulkInput(false)} className="btn-secondary">
+                  ❌ Cancel / ยกเลิก
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Presets Section */}
+          <div className="presets-section">
+            <h4 className="presets-title">⚡ Quick Start / เริ่มต้นด่วน</h4>
+            <div className="presets-grid">
+              <button onClick={() => loadPreset('zodiac')} className="preset-btn">
+                ♈ Zodiac Signs
+              </button>
+              <button onClick={() => loadPreset('yesNo')} className="preset-btn">
+                ❓ Yes or No
+              </button>
+              <button onClick={() => loadPreset('lucky')} className="preset-btn">
+                🔮 Fortune
+              </button>
+              <button onClick={() => loadPreset('numbers')} className="preset-btn">
+                🔢 Numbers
+              </button>
+            </div>
+          </div>
+
+          {/* Share Button */}
+          <button onClick={generateShareUrl} className="share-button">
+            🔗 Share This Bottle / แชร์ขวดนี้
+          </button>
+
+          {showShareUrl && (
+            <div className="share-url-container">
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                className="share-url-input"
+              />
+              <button onClick={copyShareUrl} className="copy-btn">
+                📋 Copy Link / คัดลอก
+              </button>
+            </div>
+          )}
 
           <div className="sticks-list">
             <div className="sticks-list-header">
