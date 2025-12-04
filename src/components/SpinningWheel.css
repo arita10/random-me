@@ -46,8 +46,32 @@
 
 .page-description {
   font-size: 1.2rem;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
   opacity: 0.9;
+}
+
+.language-toggle {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.language-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.language-toggle:active {
+  transform: translateY(0);
 }
 
 /* ============================================
@@ -166,6 +190,96 @@
   font-size: 13px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   z-index: 5;
+  border: 3px solid #9f7aea;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.wheel-center:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d6bcfa 0%, #9f7aea 100%);
+  color: white;
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 0 20px rgba(159, 122, 234, 0.6);
+}
+
+.wheel-center:active:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.wheel-center:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   COLOR PICKER PANEL
+   ============================================ */
+
+.color-picker-panel {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  margin: 20px auto;
+  animation: fadeIn 0.3s;
+}
+
+.color-picker-panel h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  text-align: center;
+  color: white;
+}
+
+.color-presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.preset-color-btn {
+  padding: 14px 18px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.preset-color-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.preset-color-btn:active {
+  transform: translateY(0);
+}
+
+.close-color-picker {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: rgba(231, 76, 60, 0.8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.close-color-picker:hover {
+  background: rgba(192, 57, 43, 0.9);
+  transform: translateY(-2px);
 }
 
 /* ============================================
@@ -181,37 +295,8 @@
   flex-wrap: wrap;
 }
 
-.spin-button {
-  padding: 14px 35px;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: white;
-  background: linear-gradient(135deg, #d6bcfa 0%, #9f7aea 100%);
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s;
-  flex: 1;
-  min-width: 200px;
-  max-width: 400px;
-}
-
-.spin-button:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.spin-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.spin-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.mute-button {
+.mute-button,
+.color-picker-button {
   width: 54px;
   height: 54px;
   font-size: 1.5rem;
@@ -227,9 +312,18 @@
   flex-shrink: 0;
 }
 
-.mute-button:hover {
+.mute-button:hover,
+.color-picker-button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
+}
+
+.color-picker-button {
+  font-size: 1.8rem;
+}
+
+.color-picker-button:hover {
+  transform: scale(1.1) rotate(15deg);
 }
 
 /* ============================================
@@ -951,6 +1045,10 @@
     width: 60px;
     height: 60px;
     font-size: 11px;
+  }
+
+  .color-presets {
+    grid-template-columns: 1fr;
   }
 
   .spin-button {

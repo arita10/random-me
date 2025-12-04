@@ -111,7 +111,7 @@
 .add-name-container {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   flex-wrap: wrap;
 }
 
@@ -145,6 +145,107 @@
 
 .btn-add:hover {
   background: #7c3aed;
+  transform: translateY(-2px);
+}
+
+/* Bulk Add Styles */
+.bulk-input-toggle {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.light-theme .bulk-input-toggle {
+  color: #4b5563;
+}
+
+.bulk-input-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.bulk-input-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 15px;
+  animation: slideDown 0.3s ease;
+}
+
+.bulk-input-textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  resize: vertical;
+  font-family: inherit;
+  margin-bottom: 10px;
+  min-height: 120px;
+}
+
+.bulk-input-textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.bulk-input-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.bulk-input-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-bulk-add {
+  flex: 1;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-bulk-add:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.btn-bulk-cancel {
+  flex: 1;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.light-theme .btn-bulk-cancel {
+  color: #4b5563;
+}
+
+.btn-bulk-cancel:hover {
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
 }
 
@@ -503,5 +604,14 @@
 
   .team-section {
     padding: 20px;
+  }
+
+  .bulk-input-actions {
+    flex-direction: column;
+  }
+
+  .btn-bulk-add,
+  .btn-bulk-cancel {
+    width: 100%;
   }
 }

@@ -88,18 +88,17 @@ function ColorPicker({ theme }) {
             );
           })}
         </div>
-        <div className="wheel-center">SPIN</div>
+        <button
+          className="wheel-center"
+          onClick={spinWheel}
+          disabled={isSpinning || colors.length === 0}
+        >
+          {isSpinning ? '...' : 'SPIN'}
+        </button>
       </div>
 
       {/* Control Buttons */}
       <div className="color-controls">
-        <button
-          onClick={spinWheel}
-          disabled={isSpinning || colors.length === 0}
-          className="btn-spin-color"
-        >
-          {isSpinning ? '🔄 Spinning...' : '🎡 Spin Wheel'}
-        </button>
         <button
           onClick={pickRandomColor}
           disabled={colors.length === 0}

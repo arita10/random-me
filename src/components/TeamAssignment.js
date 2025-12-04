@@ -17,6 +17,8 @@ function TeamAssignment({ theme }) {
   const [teams, setTeams] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [error, setError] = useState('');
+  const [bulkInput, setBulkInput] = useState('');
+  const [showBulkInput, setShowBulkInput] = useState(false);
 
   // Add name manually with validation
   const handleAddName = () => {
@@ -46,6 +48,40 @@ function TeamAssignment({ theme }) {
   // Remove a name
   const handleRemoveName = (index) => {
     setNames(names.filter((_, i) => i !== index));
+  };
+
+  // Handle bulk add with validation
+  const handleBulkAdd = () => {
+    setError('');
+
+    if (bulkInput.trim() === '') return;
+
+    // Split by newlines, commas, or semicolons and filter empty strings
+    const items = bulkInput
+      .split(/[\n,;]+/)
+      .map(item => item.trim())
+      .filter(item => item !== '');
+
+    // Validate all names
+    const validation = validateNamesList(items, SECURITY_LIMITS.MAX_OPTIONS_COUNT);
+
+    if (!validation.valid) {
+      setError(validation.errors.join(', '));
+      return;
+    }
+
+    // Combine with existing names and remove duplicates
+    const combinedNames = [...names, ...validation.sanitized];
+    const uniqueNames = [...new Set(combinedNames)];
+
+    if (uniqueNames.length > SECURITY_LIMITS.MAX_OPTIONS_COUNT) {
+      setError(`Maximum ${SECURITY_LIMITS.MAX_OPTIONS_COUNT} names allowed`);
+      return;
+    }
+
+    setNames(uniqueNames);
+    setBulkInput('');
+    setShowBulkInput(false);
   };
 
   // Handle file upload (Excel) with security validation
@@ -233,6 +269,41 @@ function TeamAssignment({ theme }) {
                 Add Name
               </button>
             </div>
+
+            {/* Bulk Add Toggle Button */}
+            <button
+              onClick={() => setShowBulkInput(!showBulkInput)}
+              className="bulk-input-toggle"
+            >
+              📋 {showBulkInput ? 'Hide' : 'Bulk Add (Paste List)'}
+            </button>
+
+            {/* Bulk Input Area */}
+            {showBulkInput && (
+              <div className="bulk-input-container">
+                <textarea
+                  value={bulkInput}
+                  onChange={(e) => setBulkInput(e.target.value)}
+                  placeholder="Paste your list here (one name per line, or comma-separated)&#10;Example:&#10;John Doe&#10;Jane Smith&#10;Mike Johnson"
+                  className="bulk-input-textarea"
+                  rows="6"
+                />
+                <div className="bulk-input-actions">
+                  <button onClick={handleBulkAdd} className="btn-bulk-add">
+                    ✅ Add All Names
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBulkInput('');
+                      setShowBulkInput(false);
+                    }}
+                    className="btn-bulk-cancel"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Team Configuration */}

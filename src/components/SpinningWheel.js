@@ -27,7 +27,7 @@ function SpinningWheel({ theme = 'dark' }) {
   ]);
 
   const [newOption, setNewOption] = useState('');
-  const [maxSelections, setMaxSelections] = useState(1);
+  const [maxSelections, setMaxSelections] = useState('');
   const [isLimitEnabled, setIsLimitEnabled] = useState(true);
   const [showOptionsOnWheel, setShowOptionsOnWheel] = useState(true);
   const [showOptionsList, setShowOptionsList] = useState(true);
@@ -43,10 +43,115 @@ function SpinningWheel({ theme = 'dark' }) {
   const [shareUrl, setShareUrl] = useState('');
   const [showShareUrl, setShowShareUrl] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [language] = useState('en');
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [customColors, setCustomColors] = useState(null);
+
+  // ============================================
+  // TRANSLATIONS
+  // ============================================
+
+  const translations = {
+    en: {
+      title: 'Spinning Wheel',
+      description: 'Add your options and spin to make a random selection',
+      spin: 'SPIN',
+      spinning: '...',
+      unmute: 'Unmute',
+      mute: 'Mute',
+      result: 'Result',
+      manageOptions: 'Manage Options',
+      hideList: 'Hide List',
+      showList: 'Show List',
+      enterNewOption: 'Enter new option...',
+      maxUses: 'Max uses',
+      addOption: 'Add Option',
+      bulkAdd: 'Bulk Add (Paste List)',
+      hide: 'Hide',
+      setSelectionLimit: 'Set selection limit (uncheck for unlimited)',
+      quickLoadPresets: 'Quick Load Presets',
+      thaiFood: 'Thai Food',
+      partyGames: 'Party Games',
+      lottery: 'Lottery (00-99)',
+      numbers: 'Numbers (1-100)',
+      shareWheel: 'Share This Wheel',
+      copyLink: 'Copy Link',
+      resetAllCounts: 'Reset All Counts',
+      deleteAllChoices: 'Delete All Choices',
+      wheelName: 'Wheel Name',
+      save: 'Save',
+      load: 'Load',
+      reset: 'Reset',
+      savedWheels: 'Saved Wheels',
+      noSavedWheels: 'No saved wheels yet',
+      options: 'options',
+      deleteConfirm: 'Are you sure you want to DELETE ALL options? This cannot be undone!',
+      allUsedUp: 'All options have been used up! Please reset or add new options.',
+      linkCopied: '✅ Link copied to clipboard! Share it with your friends.',
+      linkCopyFailed: '❌ Failed to copy link. Please copy it manually.',
+      wheelSaved: 'Wheel saved successfully! ✅',
+      deleteWheelConfirm: 'Delete this wheel?',
+      wheelDeleted: 'Wheel deleted',
+      signInToSave: 'Please sign in to save wheels',
+      enterWheelName: 'Please enter a wheel name',
+      pasteListPlaceholder: 'Paste your list here (one item per line, or comma-separated)\nExample:\nPizza\nBurger\nSushi',
+      addAllItems: 'Add All Items',
+      cancel: 'Cancel'
+    },
+    th: {
+      title: 'วงล้อหมุน',
+      description: 'เพิ่มตัวเลือกและหมุนเพื่อสุ่มเลือก',
+      spin: 'หมุน',
+      spinning: '...',
+      unmute: 'เปิดเสียง',
+      mute: 'ปิดเสียง',
+      result: 'ผลลัพธ์',
+      manageOptions: 'จัดการตัวเลือก',
+      hideList: 'ซ่อนรายการ',
+      showList: 'แสดงรายการ',
+      enterNewOption: 'พิมพ์ตัวเลือกใหม่...',
+      maxUses: 'จำนวนครั้ง',
+      addOption: 'เพิ่มตัวเลือก',
+      bulkAdd: 'เพิ่มเป็นชุด (วางรายการ)',
+      hide: 'ซ่อน',
+      setSelectionLimit: 'กำหนดจำนวนครั้งสูงสุด (ยกเลิกเครื่องหมายเพื่อไม่จำกัด)',
+      quickLoadPresets: 'โหลดตัวอย่างด่วน',
+      thaiFood: 'อาหารไทย',
+      partyGames: 'เกมปาร์ตี้',
+      lottery: 'ลอตเตอรี่ (00-99)',
+      numbers: 'ตัวเลข (1-100)',
+      shareWheel: 'แชร์วงล้อนี้',
+      copyLink: 'คัดลอกลิงก์',
+      resetAllCounts: 'รีเซ็ตจำนวนครั้งทั้งหมด',
+      deleteAllChoices: 'ลบตัวเลือกทั้งหมด',
+      wheelName: 'ชื่อวงล้อ',
+      save: 'บันทึก',
+      load: 'โหลด',
+      reset: 'รีเซ็ต',
+      savedWheels: 'วงล้อที่บันทึก',
+      noSavedWheels: 'ยังไม่มีวงล้อที่บันทึก',
+      options: 'ตัวเลือก',
+      deleteConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการลบตัวเลือกทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้!',
+      allUsedUp: 'ตัวเลือกทั้งหมดถูกใช้หมดแล้ว! กรุณารีเซ็ตหรือเพิ่มตัวเลือกใหม่',
+      linkCopied: '✅ คัดลอกลิงก์แล้ว! แชร์ให้เพื่อนของคุณ',
+      linkCopyFailed: '❌ ไม่สามารถคัดลอกลิงก์ได้ กรุณาคัดลอกด้วยตนเอง',
+      wheelSaved: 'บันทึกวงล้อสำเร็จ! ✅',
+      deleteWheelConfirm: 'ลบวงล้อนี้?',
+      wheelDeleted: 'ลบวงล้อแล้ว',
+      signInToSave: 'กรุณาเข้าสู่ระบบเพื่อบันทึกวงล้อ',
+      enterWheelName: 'กรุณาใส่ชื่อวงล้อ',
+      pasteListPlaceholder: 'วางรายการของคุณที่นี่ (หนึ่งรายการต่อบรรทัด หรือคั่นด้วยจุลภาค)\nตัวอย่าง:\nพิซซ่า\nเบอร์เกอร์\nซูชิ',
+      addAllItems: 'เพิ่มทั้งหมด',
+      cancel: 'ยกเลิก'
+    }
+  };
+
+  const t = translations[language];
 
   // ============================================
   // EFFECTS
   // ============================================
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -125,7 +230,7 @@ function SpinningWheel({ theme = 'dark' }) {
   };
 
   const handleDeleteAllOptions = () => {
-    const confirmDelete = window.confirm('Are you sure you want to DELETE ALL options? This cannot be undone!');
+    const confirmDelete = window.confirm(t.deleteConfirm);
     if (!confirmDelete) return;
 
     setOptions([]);
@@ -136,7 +241,7 @@ function SpinningWheel({ theme = 'dark' }) {
     if (newOption.trim() !== '') {
       const newOptionObj = {
         name: newOption,
-        maxSelections: isLimitEnabled ? maxSelections : Infinity,
+        maxSelections: isLimitEnabled ? (maxSelections || 1) : Infinity,
         timesSelected: 0
       };
       setOptions([...options, newOptionObj]);
@@ -155,7 +260,7 @@ function SpinningWheel({ theme = 'dark' }) {
 
     const newOptions = items.map(item => ({
       name: item,
-      maxSelections: isLimitEnabled ? maxSelections : Infinity,
+      maxSelections: isLimitEnabled ? (maxSelections || 1) : Infinity,
       timesSelected: 0
     }));
 
@@ -232,9 +337,9 @@ function SpinningWheel({ theme = 'dark' }) {
 
   const copyShareUrl = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('✅ Link copied to clipboard! Share it with your friends.');
+      alert(t.linkCopied);
     }).catch(() => {
-      alert('❌ Failed to copy link. Please copy it manually.');
+      alert(t.linkCopyFailed);
     });
   };
 
@@ -306,7 +411,7 @@ function SpinningWheel({ theme = 'dark' }) {
       .filter(opt => opt.timesSelected < opt.maxSelections);
 
     if (availableOptions.length === 0) {
-      alert('All options have been used up! Please reset or add new options.');
+      alert(t.allUsedUp);
       return;
     }
 
@@ -369,19 +474,19 @@ function SpinningWheel({ theme = 'dark' }) {
 
   const handleSaveWheel = async () => {
     if (!user) {
-      setError('Please sign in to save wheels');
+      setError(t.signInToSave);
       return;
     }
 
     if (!wheelName.trim()) {
-      setError('Please enter a wheel name');
+      setError(t.enterWheelName);
       return;
     }
 
     try {
       await saveWheel(user.uid, wheelName, options);
       setError('');
-      alert('Wheel saved successfully! ✅');
+      alert(t.wheelSaved);
       loadUserWheels(user.uid);
     } catch (error) {
       console.error('Error saving wheel:', error);
@@ -403,12 +508,12 @@ function SpinningWheel({ theme = 'dark' }) {
       return;
     }
 
-    if (!window.confirm('Delete this wheel?')) return;
+    if (!window.confirm(t.deleteWheelConfirm)) return;
 
     try {
       await deleteWheel(wheel.id);
       loadUserWheels(user.uid);
-      alert('Wheel deleted');
+      alert(t.wheelDeleted);
     } catch (error) {
       console.error('Error deleting wheel:', error);
       setError('Failed to delete wheel');
@@ -436,16 +541,70 @@ function SpinningWheel({ theme = 'dark' }) {
   // RENDER
   // ============================================
 
-  const rainbowColors = [
-    'linear-gradient(135deg, #FF0080 0%, #FF0000 100%)',
-    'linear-gradient(135deg, #FF4500 0%, #FF8C00 100%)',
-    'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-    'linear-gradient(135deg, #00FF00 0%, #32CD32 100%)',
-    'linear-gradient(135deg, #00CED1 0%, #1E90FF 100%)',
-    'linear-gradient(135deg, #4169E1 0%, #0000FF 100%)',
-    'linear-gradient(135deg, #8A2BE2 0%, #9400D3 100%)',
-    'linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)',
-  ];
+  const colorSchemes = {
+    rainbow: [
+      'linear-gradient(135deg, #FF0080 0%, #FF0000 100%)',
+      'linear-gradient(135deg, #FF4500 0%, #FF8C00 100%)',
+      'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+      'linear-gradient(135deg, #00FF00 0%, #32CD32 100%)',
+      'linear-gradient(135deg, #00CED1 0%, #1E90FF 100%)',
+      'linear-gradient(135deg, #4169E1 0%, #0000FF 100%)',
+      'linear-gradient(135deg, #8A2BE2 0%, #9400D3 100%)',
+      'linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)',
+    ],
+    pastel: [
+      'linear-gradient(135deg, #FFB3BA 0%, #FFDFBA 100%)',
+      'linear-gradient(135deg, #FFFFBA 0%, #BAFFC9 100%)',
+      'linear-gradient(135deg, #BAE1FF 0%, #E0BBE4 100%)',
+      'linear-gradient(135deg, #FEC8D8 0%, #FFDFD3 100%)',
+      'linear-gradient(135deg, #D4F1F4 0%, #C9E4E7 100%)',
+      'linear-gradient(135deg, #F7D9C4 0%, #FAEDCB 100%)',
+      'linear-gradient(135deg, #C9E4DE 0%, #E8DDCB 100%)',
+      'linear-gradient(135deg, #E8C1C5 0%, #D9BFD9 100%)',
+    ],
+    vibrant: [
+      'linear-gradient(135deg, #FF006E 0%, #FB5607 100%)',
+      'linear-gradient(135deg, #FFBE0B 0%, #FF006E 100%)',
+      'linear-gradient(135deg, #8338EC 0%, #3A86FF 100%)',
+      'linear-gradient(135deg, #06FFA5 0%, #FFFB0B 100%)',
+      'linear-gradient(135deg, #FF0A54 0%, #FF477E 100%)',
+      'linear-gradient(135deg, #00F5FF 0%, #0099FF 100%)',
+      'linear-gradient(135deg, #B537F2 0%, #FF0099 100%)',
+      'linear-gradient(135deg, #00FFB3 0%, #00D4AA 100%)',
+    ],
+    ocean: [
+      'linear-gradient(135deg, #006994 0%, #0090C1 100%)',
+      'linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)',
+      'linear-gradient(135deg, #48CAE4 0%, #00B4D8 100%)',
+      'linear-gradient(135deg, #90E0EF 0%, #48CAE4 100%)',
+      'linear-gradient(135deg, #00B4D8 0%, #023E8A 100%)',
+      'linear-gradient(135deg, #0096C7 0%, #0077B6 100%)',
+      'linear-gradient(135deg, #CAF0F8 0%, #90E0EF 100%)',
+      'linear-gradient(135deg, #023E8A 0%, #03045E 100%)',
+    ],
+    sunset: [
+      'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)',
+      'linear-gradient(135deg, #F7931E 0%, #FDC830 100%)',
+      'linear-gradient(135deg, #FDC830 0%, #F37335 100%)',
+      'linear-gradient(135deg, #FF4E50 0%, #F9D423 100%)',
+      'linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 100%)',
+      'linear-gradient(135deg, #FF8C42 0%, #FF3C38 100%)',
+      'linear-gradient(135deg, #FFAFBD 0%, #FFC3A0 100%)',
+      'linear-gradient(135deg, #ED213A 0%, #93291E 100%)',
+    ],
+    forest: [
+      'linear-gradient(135deg, #134E5E 0%, #71B280 100%)',
+      'linear-gradient(135deg, #396362 0%, #4E9F3D 100%)',
+      'linear-gradient(135deg, #2C5F2D 0%, #97BC62 100%)',
+      'linear-gradient(135deg, #1E5128 0%, #4E9F3D 100%)',
+      'linear-gradient(135deg, #D8E9A8 0%, #4E9F3D 100%)',
+      'linear-gradient(135deg, #52796F 0%, #84A98C 100%)',
+      'linear-gradient(135deg, #40916C 0%, #52B788 100%)',
+      'linear-gradient(135deg, #74C69D 0%, #B7E4C7 100%)',
+    ]
+  };
+
+  const rainbowColors = customColors ? colorSchemes[customColors] : colorSchemes.rainbow;
 
   return (
     <div className={`component-page ${theme === 'light' ? 'light-theme' : 'dark-theme'}`}>
@@ -453,10 +612,10 @@ function SpinningWheel({ theme = 'dark' }) {
       <div className="page-header">
         <h1 className="page-title">
           <span className="page-icon">🎡</span>
-          Spinning Wheel
+          {t.title}
         </h1>
         <p className="page-description">
-          Add your options and spin to make a random selection
+          {t.description}
         </p>
       </div>
 
@@ -509,43 +668,69 @@ function SpinningWheel({ theme = 'dark' }) {
             );
           })}
 
-          <div className="wheel-center">
-            <span>SPIN</span>
-          </div>
+          <button
+            className="wheel-center"
+            onClick={spinWheel}
+            disabled={isSpinning || options.length === 0}
+          >
+            <span>{isSpinning ? t.spinning : t.spin}</span>
+          </button>
         </div>
       </div>
 
       <div className="spin-controls">
         <button
-          onClick={spinWheel}
-          disabled={isSpinning || options.length === 0}
-          className="spin-button"
-        >
-          {isSpinning ? 'Spinning...' : 'SPIN THE WHEEL!'}
-        </button>
-        <button
           onClick={() => setIsMuted(!isMuted)}
           className="mute-button"
-          title={isMuted ? 'Unmute' : 'Mute'}
+          title={isMuted ? t.unmute : t.mute}
         >
           {isMuted ? '🔇' : '🔊'}
         </button>
       </div>
 
+      {showColorPicker && (
+        <div className="color-picker-panel">
+          <h3>Choose Color Scheme</h3>
+          <div className="color-presets">
+            <button onClick={() => setCustomColors(null)} className="preset-color-btn">
+              🌈 Rainbow (Default)
+            </button>
+            <button onClick={() => setCustomColors('pastel')} className="preset-color-btn">
+              🌸 Pastel
+            </button>
+            <button onClick={() => setCustomColors('vibrant')} className="preset-color-btn">
+              ⚡ Vibrant
+            </button>
+            <button onClick={() => setCustomColors('ocean')} className="preset-color-btn">
+              🌊 Ocean
+            </button>
+            <button onClick={() => setCustomColors('sunset')} className="preset-color-btn">
+              🌅 Sunset
+            </button>
+            <button onClick={() => setCustomColors('forest')} className="preset-color-btn">
+              🌲 Forest
+            </button>
+          </div>
+          <button onClick={() => setShowColorPicker(false)} className="close-color-picker">
+            ✕ Close
+          </button>
+        </div>
+      )}
+
       {selectedOption && !isSpinning && (
         <div className="result">
-          <h2>🎉 Result: {selectedOption}</h2>
+          <h2>🎉 {t.result}: {selectedOption}</h2>
         </div>
       )}
 
       <div className="options-manager">
         <div className="options-header">
-          <h3>Manage Options</h3>
+          <h3>{t.manageOptions}</h3>
           <button
             onClick={() => setShowOptionsList(!showOptionsList)}
             className="toggle-list-button"
           >
-            {showOptionsList ? '🔼 Hide List' : '🔽 Show List'}
+            {showOptionsList ? `🔼 ${t.hideList}` : `🔽 ${t.showList}`}
           </button>
         </div>
 
@@ -555,7 +740,7 @@ function SpinningWheel({ theme = 'dark' }) {
               <div className="add-option">
                 <input
                   type="text"
-                  placeholder="Enter new option..."
+                  placeholder={t.enterNewOption}
                   value={newOption}
                   onChange={(e) => setNewOption(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddOption()}
@@ -563,7 +748,7 @@ function SpinningWheel({ theme = 'dark' }) {
                 <div className="number-input-wrapper">
                   <button
                     className="number-btn"
-                    onClick={() => setMaxSelections(Math.max(1, maxSelections - 1))}
+                    onClick={() => setMaxSelections(Math.max(1, (maxSelections || 1) - 1))}
                     disabled={!isLimitEnabled || maxSelections <= 1}
                     type="button"
                   >
@@ -571,9 +756,8 @@ function SpinningWheel({ theme = 'dark' }) {
                   </button>
                   <input
                     type="number"
-                    placeholder="Max uses"
+                    placeholder={t.maxUses}
                     value={maxSelections}
-                    min="1"
                     max="999"
                     onChange={(e) => {
                       const val = e.target.value;
@@ -581,14 +765,9 @@ function SpinningWheel({ theme = 'dark' }) {
                         setMaxSelections('');
                       } else {
                         const num = parseInt(val);
-                        if (num >= 1 && num <= 999) {
+                        if (!isNaN(num) && num >= 0 && num <= 999) {
                           setMaxSelections(num);
                         }
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value === '' || parseInt(e.target.value) < 1) {
-                        setMaxSelections(1);
                       }
                     }}
                     className="max-selections-input"
@@ -604,14 +783,14 @@ function SpinningWheel({ theme = 'dark' }) {
                     ▲
                   </button>
                 </div>
-                <button onClick={handleAddOption}>Add Option</button>
+                <button onClick={handleAddOption}>{t.addOption}</button>
               </div>
 
               <button
                 onClick={() => setShowBulkInput(!showBulkInput)}
                 className="bulk-input-toggle"
               >
-                📋 {showBulkInput ? 'Hide' : 'Bulk Add (Paste List)'}
+                📋 {showBulkInput ? t.hide : t.bulkAdd}
               </button>
 
               {showBulkInput && (
@@ -619,13 +798,13 @@ function SpinningWheel({ theme = 'dark' }) {
                   <textarea
                     value={bulkInput}
                     onChange={(e) => setBulkInput(e.target.value)}
-                    placeholder="Paste your list here (one item per line, or comma-separated)&#10;Example:&#10;Pizza&#10;Burger&#10;Sushi"
+                    placeholder={t.pasteListPlaceholder}
                     className="bulk-input-textarea"
                     rows="6"
                   />
                   <div className="bulk-input-actions">
                     <button onClick={handleBulkAdd} className="btn-primary">
-                      ✅ Add All Items
+                      ✅ {t.addAllItems}
                     </button>
                     <button
                       onClick={() => {
@@ -634,7 +813,7 @@ function SpinningWheel({ theme = 'dark' }) {
                       }}
                       className="btn-secondary"
                     >
-                      Cancel
+                      {t.cancel}
                     </button>
                   </div>
                 </div>
@@ -647,32 +826,32 @@ function SpinningWheel({ theme = 'dark' }) {
                     checked={isLimitEnabled}
                     onChange={(e) => setIsLimitEnabled(e.target.checked)}
                   />
-                  <span>Set selection limit (uncheck for unlimited)</span>
+                  <span>{t.setSelectionLimit}</span>
                 </label>
               </div>
             </div>
 
             {/* Thai Presets Section */}
             <div className="presets-section">
-              <h4 className="presets-title">🇹🇭 Quick Load Presets (Thailand)</h4>
+              <h4 className="presets-title">{t.quickLoadPresets}</h4>
               <div className="presets-grid">
                 <button onClick={() => loadPreset('thaiFood')} className="preset-btn">
-                  🍜 Thai Food
+                  🍜 {t.thaiFood}
                 </button>
                 <button onClick={() => loadPreset('party')} className="preset-btn">
-                  🎉 Party Games
+                  🎉 {t.partyGames}
                 </button>
                 <button onClick={() => loadPreset('lottery')} className="preset-btn">
-                  🎰 Lottery (00-99)
+                  🎰 {t.lottery}
                 </button>
                 <button onClick={() => loadPreset('numbers')} className="preset-btn">
-                  🔢 Numbers (1-100)
+                  🔢 {t.numbers}
                 </button>
               </div>
             </div>
 
             <button onClick={generateShareUrl} className="share-button">
-              🔗 Share This Wheel
+              🔗 {t.shareWheel}
             </button>
 
             {showShareUrl && (
@@ -685,17 +864,17 @@ function SpinningWheel({ theme = 'dark' }) {
                   onClick={(e) => e.target.select()}
                 />
                 <button onClick={copyShareUrl} className="copy-btn">
-                  📋 Copy Link
+                  📋 {t.copyLink}
                 </button>
               </div>
             )}
 
             <button onClick={handleResetCounts} className="reset-button">
-              🔄 Reset All Counts
+              🔄 {t.resetAllCounts}
             </button>
 
             <button onClick={handleDeleteAllOptions} className="delete-all-button">
-              🗑️ Delete All Choices
+              🗑️ {t.deleteAllChoices}
             </button>
 
             <div className="options-list">
@@ -727,7 +906,7 @@ function SpinningWheel({ theme = 'dark' }) {
       {user && (
         <div className="save-section">
           <div className="input-section">
-            <label className="input-label">Wheel Name</label>
+            <label className="input-label">{t.wheelName}</label>
             <input
               type="text"
               value={wheelName}
@@ -740,13 +919,13 @@ function SpinningWheel({ theme = 'dark' }) {
 
           <div className="button-row">
             <button onClick={handleSaveWheel} className="btn btn-secondary">
-              💾 Save
+              💾 {t.save}
             </button>
             <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
-              📂 Load
+              📂 {t.load}
             </button>
             <button onClick={handleReset} className="btn btn-secondary">
-              🔄 Reset
+              🔄 {t.reset}
             </button>
           </div>
 
@@ -761,16 +940,16 @@ function SpinningWheel({ theme = 'dark' }) {
           {/* Saved Wheels */}
           {showSaved && (
             <div className="saved-wheels">
-              <h3 className="saved-title">Saved Wheels ({savedWheels.length})</h3>
+              <h3 className="saved-title">{t.savedWheels} ({savedWheels.length})</h3>
               {savedWheels.length === 0 ? (
-                <p className="empty-message">No saved wheels yet</p>
+                <p className="empty-message">{t.noSavedWheels}</p>
               ) : (
                 <div className="saved-list">
                   {savedWheels.map((wheel) => (
                     <div key={wheel.id} className="saved-item">
                       <div onClick={() => handleLoadWheel(wheel)} className="saved-info">
                         <span className="saved-name">{wheel.name}</span>
-                        <span className="saved-count">{wheel.options.length} options</span>
+                        <span className="saved-count">{wheel.options.length} {t.options}</span>
                       </div>
                       <button
                         onClick={() => handleDeleteWheel(wheel)}

@@ -63,6 +63,27 @@
   font-size: 14px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 5;
+  border: 3px solid #6366f1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wheel-center:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.wheel-center:active:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.wheel-center:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e5e7eb;
+  color: #9ca3af;
 }
 
 /* Controls */
@@ -342,11 +363,12 @@
 
   .color-controls {
     flex-direction: column;
+    align-items: center;
   }
 
-  .btn-spin-color,
   .btn-random-color {
     width: 100%;
+    max-width: 300px;
   }
 
   .color-result {
