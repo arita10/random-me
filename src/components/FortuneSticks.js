@@ -135,7 +135,7 @@ function FortuneSticks() {
 
   const shakeBottle = () => {
     if (sticks.length === 0) {
-      alert('กรุณาเพิ่มตัวเลือกก่อนเขย่า / Please add choices first');
+      alert('Please add choices first');
       return;
     }
 
@@ -175,7 +175,7 @@ function FortuneSticks() {
   };
 
   const clearAllSticks = () => {
-    if (window.confirm('ล้างตัวเลือกทั้งหมด? / Clear all choices?')) {
+    if (window.confirm('Clear all choices?')) {
       setSticks([]);
       setSelectedStick(null);
       setFallingStick(null);
@@ -323,8 +323,8 @@ function FortuneSticks() {
   return (
     <div className="fortune-sticks-container">
       <div className="fortune-sticks-header">
-        <h1>🥢 เขย่าไม้ไผ่ / Fortune Sticks</h1>
-        <p>เพิ่มตัวเลือกและเขย่าเพื่อสุ่ม / Add choices and shake to select randomly</p>
+        <h1>🥢 Fortune Sticks</h1>
+        <p>Add choices and shake to select randomly</p>
       </div>
 
       <div className="fortune-content">
@@ -347,7 +347,7 @@ function FortuneSticks() {
               ))}
             </div>
             {sticks.length === 0 && (
-              <div className="bottle-empty">ว่างเปล่า<br/>Empty</div>
+              <div className="bottle-empty">Empty</div>
             )}
           </div>
 
@@ -365,7 +365,7 @@ function FortuneSticks() {
               disabled={isShaking || sticks.length === 0}
               className="shake-button"
             >
-              {isShaking ? '🔄 กำลังเขย่า... / Shaking...' : '🥢 เขย่า! / Shake!'}
+              {isShaking ? '🔄 Shaking...' : '🥢 Shake!'}
             </button>
 
             <button
@@ -380,10 +380,10 @@ function FortuneSticks() {
           {selectedStick && (
             <div className="result-display">
               <div className="result-card">
-                <div className="result-label">🎉 ผลลัพธ์ / Result:</div>
+                <div className="result-label">🎉 Result:</div>
                 <div className="result-text">{selectedStick.text}</div>
                 <button onClick={resetSelection} className="reset-button">
-                  เขย่าอีกครั้ง / Shake Again
+                  Shake Again
                 </button>
               </div>
             </div>
@@ -393,17 +393,17 @@ function FortuneSticks() {
         {/* Controls Section */}
         <div className="controls-section">
           <div className="add-stick-form">
-            <h3>➕ เพิ่มตัวเลือก / Add Choices</h3>
+            <h3>➕ Add Choices</h3>
             <form onSubmit={handleAddStick}>
               <input
                 type="text"
                 value={newStick}
                 onChange={(e) => setNewStick(e.target.value)}
-                placeholder="พิมพ์ตัวเลือก... / Type choice..."
+                placeholder="Type choice..."
                 className="stick-input"
               />
               <button type="submit" className="add-button">
-                เพิ่ม / Add
+                Add
               </button>
             </form>
           </div>
@@ -413,7 +413,7 @@ function FortuneSticks() {
             onClick={() => setShowBulkInput(!showBulkInput)}
             className="bulk-input-toggle"
           >
-            📋 Bulk Add / เพิ่มเป็นชุด
+            📋 Bulk Add
           </button>
 
           {showBulkInput && (
@@ -421,16 +421,16 @@ function FortuneSticks() {
               <textarea
                 value={bulkInput}
                 onChange={(e) => setBulkInput(e.target.value)}
-                placeholder="วางรายการที่นี่ (แต่ละบรรทัด หรือคั่นด้วยจุลภาค/อัฒภาค)&#10;Paste your list here (one per line, or comma/semicolon separated)"
+                placeholder="Paste your list here (one per line, or comma/semicolon separated)"
                 className="bulk-input-textarea"
                 rows="6"
               />
               <div className="bulk-input-actions">
                 <button onClick={handleBulkAdd} className="btn-primary">
-                  ✅ Add All / เพิ่มทั้งหมด
+                  ✅ Add All
                 </button>
                 <button onClick={() => setShowBulkInput(false)} className="btn-secondary">
-                  ❌ Cancel / ยกเลิก
+                  ❌ Cancel
                 </button>
               </div>
             </div>
@@ -438,7 +438,7 @@ function FortuneSticks() {
 
           {/* Presets Section */}
           <div className="presets-section">
-            <h4 className="presets-title">⚡ Quick Start / เริ่มต้นด่วน</h4>
+            <h4 className="presets-title">⚡ Quick Start</h4>
             <div className="presets-grid">
               <button onClick={() => loadPreset('zodiac')} className="preset-btn">
                 ♈ Zodiac Signs
@@ -457,7 +457,7 @@ function FortuneSticks() {
 
           {/* Share Button */}
           <button onClick={generateShareUrl} className="share-button">
-            🔗 Share This Bottle / แชร์ขวดนี้
+            🔗 Share This Bottle
           </button>
 
           {showShareUrl && (
@@ -469,25 +469,25 @@ function FortuneSticks() {
                 className="share-url-input"
               />
               <button onClick={copyShareUrl} className="copy-btn">
-                📋 Copy Link / คัดลอก
+                📋 Copy Link
               </button>
             </div>
           )}
 
           <div className="sticks-list">
             <div className="sticks-list-header">
-              <h3>📋 รายการตัวเลือก ({sticks.length})</h3>
+              <h3>📋 Choices List ({sticks.length})</h3>
               {sticks.length > 0 && (
                 <button onClick={clearAllSticks} className="clear-all-button">
-                  🗑️ ล้างทั้งหมด / Clear All
+                  🗑️ Clear All
                 </button>
               )}
             </div>
 
             {sticks.length === 0 ? (
               <div className="empty-state">
-                <p>ยังไม่มีตัวเลือก<br/>No choices yet</p>
-                <p className="hint">เพิ่มตัวเลือกเพื่อเริ่มต้น<br/>Add some choices to begin</p>
+                <p>No choices yet</p>
+                <p className="hint">Add some choices to begin</p>
               </div>
             ) : (
               <div className="sticks-grid">
@@ -508,12 +508,12 @@ function FortuneSticks() {
           </div>
 
           <div className="info-box">
-            <h4>💡 วิธีใช้ / How to Use:</h4>
+            <h4>💡 How to Use:</h4>
             <ol>
-              <li>เพิ่มตัวเลือกของคุณ / Add your choices</li>
-              <li>กดปุ่ม "เขย่า" / Press "Shake" button</li>
-              <li>รอให้ไม้ไผ่ตกมา / Wait for the stick to fall</li>
-              <li>ดูผลลัพธ์! / See the result!</li>
+              <li>Add your choices</li>
+              <li>Press "Shake" button</li>
+              <li>Wait for the stick to fall</li>
+              <li>See the result!</li>
             </ol>
           </div>
         </div>
@@ -523,7 +523,7 @@ function FortuneSticks() {
       {user && (
         <div className="save-section">
           <div className="input-section">
-            <label className="input-label">Bottle Name / ชื่อขวด</label>
+            <label className="input-label">Bottle Name</label>
             <input
               type="text"
               value={bottleName}
@@ -536,13 +536,13 @@ function FortuneSticks() {
 
           <div className="button-row">
             <button onClick={handleSaveBottle} className="btn btn-secondary">
-              💾 Save / บันทึก
+              💾 Save
             </button>
             <button onClick={() => setShowSaved(!showSaved)} className="btn btn-secondary">
-              📂 Load / โหลด
+              📂 Load
             </button>
             <button onClick={handleReset} className="btn btn-secondary">
-              🔄 Reset / รีเซ็ต
+              🔄 Reset
             </button>
           </div>
 
@@ -557,16 +557,16 @@ function FortuneSticks() {
           {/* Saved Bottles */}
           {showSaved && (
             <div className="saved-decks">
-              <h3 className="saved-title">Saved Bottles / ขวดที่บันทึก ({savedBottles.length})</h3>
+              <h3 className="saved-title">Saved Bottles ({savedBottles.length})</h3>
               {savedBottles.length === 0 ? (
-                <p className="empty-message">No saved bottles yet / ยังไม่มีขวดที่บันทึก</p>
+                <p className="empty-message">No saved bottles yet</p>
               ) : (
                 <div className="saved-list">
                   {savedBottles.map((bottle) => (
                     <div key={bottle.id} className="saved-item">
                       <div onClick={() => handleLoadBottle(bottle)} className="saved-info">
                         <span className="saved-name">{bottle.name}</span>
-                        <span className="saved-count">{bottle.sticks.length} choices / ตัวเลือก</span>
+                        <span className="saved-count">{bottle.sticks.length} choices</span>
                       </div>
                       <button
                         onClick={() => handleDeleteBottle(bottle.id)}

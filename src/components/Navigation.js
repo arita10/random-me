@@ -61,7 +61,7 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
       <div className="nav-container">
         <Link to="/" className="logo">
           <span className="logo-icon">🎲</span>
-          <span className="logo-text">Random Selector</span>
+          <span className="logo-text">Random Me</span>
         </Link>
 
         {/* Desktop Menu */}
