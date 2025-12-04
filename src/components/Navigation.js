@@ -43,6 +43,7 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
       icon: '🎮',
       items: [
         { path: '/coin-flip', icon: '🪙', label: 'Coin Flip' },
+        { path: '/yes-no', icon: '🤔', label: 'Yes or No' },
         { path: '/rps', icon: '✊', label: 'Rock Paper Scissors' },
         { path: '/matching-game', icon: '🃏', label: 'Matching Game' }
       ]

@@ -15,6 +15,7 @@ import CoinFlip from './components/CoinFlip';
 import RockPaperScissors from './components/RockPaperScissors';
 import MatchingGame from './components/MatchingGame';
 import FortuneSticks from './components/FortuneSticks';
+import YesNoDecision from './components/YesNoDecision';
 
 // UI Components
 import LandingPage from './components/LandingPage';
@@ -94,6 +95,7 @@ function App() {
             <Route path="/fortune-sticks" element={<FortuneSticks theme={theme} />} />
             {/* Games */}
             <Route path="/coin-flip" element={<CoinFlip theme={theme} />} />
+            <Route path="/yes-no" element={<YesNoDecision theme={theme} />} />
             <Route path="/rps" element={<RockPaperScissors theme={theme} />} />
             <Route path="/matching-game" element={<MatchingGame theme={theme} />} />
             {/* Team Tools */}

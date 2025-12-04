@@ -46,9 +46,14 @@ function CoinFlip({ theme }) {
         <p className="page-description">Flip a virtual coin - Heads or Tails?</p>
       </div>
 
-      {/* Coin */}
+      {/* Coin - Click/Touch to Flip */}
       <div className="coin-container">
-        <div className={`coin ${isFlipping ? 'flipping' : ''} ${result ? result : ''}`}>
+        <div
+          className={`coin ${isFlipping ? 'flipping' : ''} ${result ? result : ''}`}
+          onClick={flipCoin}
+          style={{ cursor: isFlipping ? 'default' : 'pointer' }}
+          title={isFlipping ? 'Flipping...' : 'Click or tap to flip!'}
+        >
           <div className="coin-side heads">
             <div className="coin-face">
               <div className="coin-text">HEADS</div>
@@ -64,6 +69,11 @@ function CoinFlip({ theme }) {
         </div>
       </div>
 
+      {/* Instruction Text */}
+      <div className="coin-instruction">
+        <p>{isFlipping ? '🔄 Flipping...' : '👆 Click or tap the coin to flip!'}</p>
+      </div>
+
       {/* Result Display */}
       {result && !isFlipping && (
         <div className="result-display">
@@ -72,17 +82,6 @@ function CoinFlip({ theme }) {
           </div>
         </div>
       )}
-
-      {/* Flip Button */}
-      <div className="flip-controls">
-        <button
-          onClick={flipCoin}
-          disabled={isFlipping}
-          className="btn-flip"
-        >
-          {isFlipping ? '🔄 Flipping...' : '🎲 Flip Coin'}
-        </button>
-      </div>
 
       {/* Statistics */}
       <div className="stats-section">

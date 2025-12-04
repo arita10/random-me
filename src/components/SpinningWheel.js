@@ -34,6 +34,8 @@ function SpinningWheel({ theme = 'dark' }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [showFirework, setShowFirework] = useState(false);
+  const [winningSegmentIndex, setWinningSegmentIndex] = useState(null);
   const [wheelName, setWheelName] = useState('My Wheel');
   const [savedWheels, setSavedWheels] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
@@ -417,6 +419,8 @@ function SpinningWheel({ theme = 'dark' }) {
 
     setIsSpinning(true);
     setSelectedOption(null);
+    setShowFirework(false);
+    setWinningSegmentIndex(null);
 
     // Play ticking sound during spin
     const tickInterval = setInterval(() => {
@@ -468,7 +472,14 @@ function SpinningWheel({ theme = 'dark' }) {
 
       setOptions(updatedOptions);
       setSelectedOption(options[winningIndex].name);
+      setWinningSegmentIndex(winningIndex);
+      setShowFirework(true);
       setIsSpinning(false);
+
+      // Hide firework after animation completes
+      setTimeout(() => {
+        setShowFirework(false);
+      }, 2000);
     }, 4000);
   };
 
@@ -648,10 +659,12 @@ function SpinningWheel({ theme = 'dark' }) {
 
             const clipPath = `polygon(50% 50%, ${x1}% ${y1}%, ${x2}% ${y2}%)`;
 
+            const isWinningSegment = showFirework && index === winningSegmentIndex;
+
             return (
               <div
                 key={index}
-                className="wheel-segment"
+                className={`wheel-segment ${isWinningSegment ? 'winning-segment' : ''}`}
                 style={{
                   transform: `rotate(${angle}deg)`,
                   background: background,
@@ -662,6 +675,13 @@ function SpinningWheel({ theme = 'dark' }) {
                 {showOptionsOnWheel && (
                   <div className="wheel-text">
                     <span className="option-text">{option.name}</span>
+                  </div>
+                )}
+                {isWinningSegment && (
+                  <div className="firework-container">
+                    <div className="firework"></div>
+                    <div className="firework"></div>
+                    <div className="firework"></div>
                   </div>
                 )}
               </div>
