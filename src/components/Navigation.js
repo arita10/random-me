@@ -31,7 +31,7 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
       title: 'Selection Tools',
       icon: '🎯',
       items: [
-        { path: '/wheel', icon: '🎡', label: 'Spinning Wheel' },
+        { path: '/wheel', icon: '🎲', label: 'Spinning Wheel' },
         { path: '/fortune-sticks', icon: '🥢', label: 'Fortune Sticks' },
         { path: '/cards', icon: '🃏', label: 'Card Selector' },
         { path: '/dice', icon: '🎲', label: 'Dice Roller' },
@@ -60,7 +60,7 @@ function Navigation({ darkMode, user, toggleDarkMode }) {
     <nav className="navigation">
       <div className="nav-container">
         <Link to="/" className="logo">
-          <span className="logo-icon">🎲</span>
+          <span className="logo-icon">🎡</span>
           <span className="logo-text">Random Me</span>
         </Link>
 

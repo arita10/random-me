@@ -22,7 +22,8 @@ function Footer() {
           <div className="footer-section">
             <h4 className="footer-heading">Selection Tools</h4>
             <ul className="footer-links">
-              <li><Link to="/wheel">🎡 Spinning Wheel</Link></li>
+              <li><Link to="/wheel">🎲 Spinning Wheel</Link></li>
+              <li><Link to="/fortune-sticks">🥢 Fortune Sticks</Link></li>
               <li><Link to="/cards">🃏 Card Selector</Link></li>
               <li><Link to="/dice">🎲 Dice Roller</Link></li>
               <li><Link to="/color">🎨 Color Picker</Link></li>

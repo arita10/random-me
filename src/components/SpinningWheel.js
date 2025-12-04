@@ -611,7 +611,7 @@ function SpinningWheel({ theme = 'dark' }) {
       {/* Header */}
       <div className="page-header">
         <h1 className="page-title">
-          <span className="page-icon">🎡</span>
+          <span className="page-icon">🎲</span>
           {t.title}
         </h1>
         <p className="page-description">
