@@ -314,10 +314,15 @@ function TeamAssignment({ theme }) {
                 Number of Teams:
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max={names.length || 10}
                   value={numTeams}
-                  onChange={(e) => setNumTeams(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 0 || e.target.value === '') {
+                      setNumTeams(value || 0);
+                    }
+                  }}
                   className="team-number-input"
                 />
               </label>

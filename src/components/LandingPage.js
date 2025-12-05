@@ -4,7 +4,7 @@ import './LandingPage.css';
 
 function LandingPage() {
   const tools = [
-    { icon: '🎲', title: 'Spinning Wheel', path: '/wheel', color: '#6366f1' },
+    { icon: '🎡', title: 'Spinning Wheel', path: '/wheel', color: '#6366f1' },
     { icon: '🥢', title: 'Fortune Sticks', path: '/fortune-sticks', color: '#8b5cf6' },
     { icon: '🃏', title: 'Card Selector', path: '/cards', color: '#ec4899' },
     { icon: '🎨', title: 'Color Picker', path: '/color', color: '#f43f5e' },
@@ -20,6 +20,7 @@ function LandingPage() {
     <main className="landing-page">
       {/* Floating Decorations */}
       <div className="floating-decorations">
+        <div className="floating-emoji emoji-1">🎡</div>
         <div className="floating-emoji emoji-1">🎲</div>
         <div className="floating-emoji emoji-2">🎨</div>
         <div className="floating-emoji emoji-3">🃏</div>
