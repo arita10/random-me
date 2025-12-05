@@ -251,21 +251,44 @@ function DiceRoller({ theme = 'dark' }) {
                   onChange={(e) => setNewDiceOption(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddDiceOption()}
                 />
-                <input
-                  type="number"
-                  placeholder="Max uses"
-                  value={diceMaxSelections}
-                  min="0"
-                  max="99"
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value >= 0 || e.target.value === '') {
-                      setDiceMaxSelections(value || '');
-                    }
-                  }}
-                  className="max-selections-input"
-                  disabled={!isDiceLimitEnabled}
-                />
+                <div className="number-input-wrapper">
+                  <button
+                    className="number-btn"
+                    onClick={() => setDiceMaxSelections(Math.max(1, (diceMaxSelections || 1) - 1))}
+                    disabled={!isDiceLimitEnabled || diceMaxSelections <= 1}
+                    type="button"
+                  >
+                    ▼
+                  </button>
+                  <input
+                    type="number"
+                    placeholder="Max uses"
+                    value={diceMaxSelections}
+                    max="99"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || val === null) {
+                        setDiceMaxSelections('');
+                      } else {
+                        const num = parseInt(val);
+                        if (!isNaN(num) && num >= 0 && num <= 99) {
+                          setDiceMaxSelections(num);
+                        }
+                      }
+                    }}
+                    className="max-selections-input"
+                    disabled={!isDiceLimitEnabled}
+                    inputMode="numeric"
+                  />
+                  <button
+                    className="number-btn"
+                    onClick={() => setDiceMaxSelections(Math.min(99, (diceMaxSelections || 0) + 1))}
+                    disabled={!isDiceLimitEnabled || diceMaxSelections >= 99}
+                    type="button"
+                  >
+                    ▲
+                  </button>
+                </div>
                 <button onClick={handleAddDiceOption}>Add Option</button>
               </div>
 

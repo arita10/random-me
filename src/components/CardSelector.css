@@ -327,13 +327,43 @@
   color: #333;
 }
 
+.number-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+.number-btn {
+  background: #b794f6;
+  color: white;
+  border: none;
+  padding: 11px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 40px;
+  font-weight: bold;
+}
+
+.number-btn:hover:not(:disabled) {
+  background: #9f7aea;
+}
+
+.number-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .max-selections-input {
   width: 90px;
   padding: 11px;
   font-size: 0.95rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  background: transparent;
   color: #333;
   text-align: center;
   transition: all 0.3s;
@@ -739,13 +769,40 @@
   }
 
   .add-option input[type="text"],
-  .max-selections-input,
+  .number-input-wrapper,
   .add-option button {
     width: 100%;
   }
 
+  .number-input-wrapper {
+    min-height: 48px;
+    justify-content: space-between;
+  }
+
   .max-selections-input {
-    width: 100%;
+    flex: 1;
+    min-height: 48px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  /* Hide spinner arrows on mobile */
+  .max-selections-input::-webkit-outer-spin-button,
+  .max-selections-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .number-btn {
+    min-width: 48px;
+    max-width: 48px;
+    padding: 12px 8px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    flex-shrink: 0;
   }
 
   .shuffle-button {

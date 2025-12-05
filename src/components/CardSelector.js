@@ -446,21 +446,44 @@ function CardSelector({ theme = 'dark' }) {
                     onChange={(e) => setNewCardOption(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCardOption()}
                   />
-                  <input
-                    type="number"
-                    placeholder="Max uses"
-                    value={cardMaxSelections}
-                    min="0"
-                    max="99"
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 0 || e.target.value === '') {
-                        setCardMaxSelections(value || '');
-                      }
-                    }}
-                    className="max-selections-input"
-                    disabled={!isCardLimitEnabled}
-                  />
+                  <div className="number-input-wrapper">
+                    <button
+                      className="number-btn"
+                      onClick={() => setCardMaxSelections(Math.max(1, (cardMaxSelections || 1) - 1))}
+                      disabled={!isCardLimitEnabled || cardMaxSelections <= 1}
+                      type="button"
+                    >
+                      ▼
+                    </button>
+                    <input
+                      type="number"
+                      placeholder="Max uses"
+                      value={cardMaxSelections}
+                      max="99"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || val === null) {
+                          setCardMaxSelections('');
+                        } else {
+                          const num = parseInt(val);
+                          if (!isNaN(num) && num >= 0 && num <= 99) {
+                            setCardMaxSelections(num);
+                          }
+                        }
+                      }}
+                      className="max-selections-input"
+                      disabled={!isCardLimitEnabled}
+                      inputMode="numeric"
+                    />
+                    <button
+                      className="number-btn"
+                      onClick={() => setCardMaxSelections(Math.min(99, (cardMaxSelections || 0) + 1))}
+                      disabled={!isCardLimitEnabled || cardMaxSelections >= 99}
+                      type="button"
+                    >
+                      ▲
+                    </button>
+                  </div>
                   <button onClick={handleAddCardOption}>Add Card</button>
                 </div>
 
