@@ -29,7 +29,7 @@ function CardSelector({ theme = 'dark' }) {
   ]);
 
   const [newCardOption, setNewCardOption] = useState('');
-  const [cardMaxSelections, setCardMaxSelections] = useState(1);
+  const [cardMaxSelections, setCardMaxSelections] = useState('');
   const [isCardLimitEnabled, setIsCardLimitEnabled] = useState(true);
   const [showCardList, setShowCardList] = useState(true);
   const [flippedCards, setFlippedCards] = useState([]);
@@ -102,7 +102,7 @@ function CardSelector({ theme = 'dark' }) {
     if (newCardOption.trim() !== '') {
       const newCardOptionObj = {
         name: newCardOption,
-        maxSelections: isCardLimitEnabled ? cardMaxSelections : Infinity,
+        maxSelections: isCardLimitEnabled ? (cardMaxSelections || 1) : Infinity,
         timesSelected: 0
       };
       setCardOptions([...cardOptions, newCardOptionObj]);
@@ -145,7 +145,7 @@ function CardSelector({ theme = 'dark' }) {
 
     const newOptions = items.map(item => ({
       name: item,
-      maxSelections: isCardLimitEnabled ? cardMaxSelections : Infinity,
+      maxSelections: isCardLimitEnabled ? (cardMaxSelections || 1) : Infinity,
       timesSelected: 0
     }));
 
@@ -450,9 +450,14 @@ function CardSelector({ theme = 'dark' }) {
                     type="number"
                     placeholder="Max uses"
                     value={cardMaxSelections}
-                    min="1"
+                    min="0"
                     max="99"
-                    onChange={(e) => setCardMaxSelections(parseInt(e.target.value) || 1)}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 0 || e.target.value === '') {
+                        setCardMaxSelections(value || '');
+                      }
+                    }}
                     className="max-selections-input"
                     disabled={!isCardLimitEnabled}
                   />

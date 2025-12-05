@@ -27,7 +27,7 @@ function DiceRoller({ theme = 'dark' }) {
   ]);
 
   const [newDiceOption, setNewDiceOption] = useState('');
-  const [diceMaxSelections, setDiceMaxSelections] = useState(1);
+  const [diceMaxSelections, setDiceMaxSelections] = useState('');
   const [isDiceLimitEnabled, setIsDiceLimitEnabled] = useState(true);
   const [showDiceList, setShowDiceList] = useState(true);
   const [isRolling, setIsRolling] = useState(false);
@@ -91,7 +91,7 @@ function DiceRoller({ theme = 'dark' }) {
     if (newDiceOption.trim() !== '') {
       const newDiceOptionObj = {
         name: newDiceOption,
-        maxSelections: isDiceLimitEnabled ? diceMaxSelections : Infinity,
+        maxSelections: isDiceLimitEnabled ? (diceMaxSelections || 1) : Infinity,
         timesSelected: 0
       };
       setDiceOptions([...diceOptions, newDiceOptionObj]);
@@ -255,9 +255,14 @@ function DiceRoller({ theme = 'dark' }) {
                   type="number"
                   placeholder="Max uses"
                   value={diceMaxSelections}
-                  min="1"
+                  min="0"
                   max="99"
-                  onChange={(e) => setDiceMaxSelections(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 0 || e.target.value === '') {
+                      setDiceMaxSelections(value || '');
+                    }
+                  }}
                   className="max-selections-input"
                   disabled={!isDiceLimitEnabled}
                 />
