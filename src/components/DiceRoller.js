@@ -1,8 +1,8 @@
 // Import React and the useState hook
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, where, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { auth, signInWithGoogle, signOutUser } from '../firebase';
+import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './DiceRoller.css';
 
@@ -33,7 +33,7 @@ function DiceRoller({ theme = 'dark' }) {
   const [isRolling, setIsRolling] = useState(false);
   const [diceResult, setDiceResult] = useState(null);
   const [history, setHistory] = useState([]);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory] = useState(false);
   const [error, setError] = useState('');
 
   // ============================================

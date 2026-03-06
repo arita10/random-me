@@ -2,6 +2,7 @@
 // Comprehensive security functions for input validation and sanitization
 
 import DOMPurify from 'dompurify';
+// eslint-disable-next-line no-unused-vars
 import validator from 'validator';
 
 // ============================================
@@ -42,7 +43,7 @@ export const sanitizeTextInput = (input, maxLength = 1000) => {
   }
 
   // Remove control characters
-  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+  sanitized = sanitized.replace(/[\u0000-\u001F\u007F]/g, '');
 
   return sanitized;
 };
@@ -343,7 +344,7 @@ export const SECURITY_LIMITS = {
   RATE_LIMIT_ATTEMPTS: 10
 };
 
-export default {
+const SecurityUtils = {
   sanitizeHTML,
   sanitizeTextInput,
   sanitizeFileName,
@@ -358,3 +359,5 @@ export default {
   secureRemove,
   SECURITY_LIMITS
 };
+
+export default SecurityUtils;

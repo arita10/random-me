@@ -6,7 +6,6 @@ import {
   validateExcelFile,
   validateNamesList,
   validateNumber,
-  sanitizeTextInput,
   SECURITY_LIMITS
 } from '../utils/security';
 

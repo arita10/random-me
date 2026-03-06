@@ -1,6 +1,6 @@
 // Import React and the useState hook
 import React, { useState, useEffect } from 'react';
-import { auth, signInWithGoogle, signOutUser, saveWheel, loadWheel, getUserWheels, deleteWheel } from '../firebase';
+import { auth, saveWheel, getUserWheels, deleteWheel } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './SpinningWheel.css';
 
@@ -29,7 +29,7 @@ function SpinningWheel({ theme = 'dark' }) {
   const [newOption, setNewOption] = useState('');
   const [maxSelections, setMaxSelections] = useState('');
   const [isLimitEnabled, setIsLimitEnabled] = useState(true);
-  const [showOptionsOnWheel, setShowOptionsOnWheel] = useState(true);
+  const [showOptionsOnWheel] = useState(true);
   const [showOptionsList, setShowOptionsList] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);

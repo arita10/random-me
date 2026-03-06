@@ -14,7 +14,6 @@ import {
   where,
   deleteDoc,
   doc,
-  updateDoc,
   serverTimestamp
 } from 'firebase/firestore';
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { auth, signInWithGoogle, signOutUser } from '../firebase';
+import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './CardSelector.css';
 
@@ -33,7 +33,7 @@ function CardSelector({ theme = 'dark' }) {
   const [isCardLimitEnabled, setIsCardLimitEnabled] = useState(true);
   const [showCardList, setShowCardList] = useState(true);
   const [flippedCards, setFlippedCards] = useState([]);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  const [, setSelectedCardIndex] = useState(null);
   const [deckName, setDeckName] = useState('Playing Cards');
   const [savedDecks, setSavedDecks] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
