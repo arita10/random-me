@@ -4,21 +4,28 @@
   "description": "Free random selection tools including spinning wheel, dice roller, card selector, matching games, and team assignment. Make decisions easily and fairly.",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "icon-192.svg",
-      "type": "image/svg+xml",
+      "src": "icon-192.png",
+      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icon-512.svg",
-      "type": "image/svg+xml",
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",
@@ -29,5 +36,47 @@
   "background_color": "#1a1a2e",
   "categories": ["games", "entertainment", "utilities", "productivity"],
   "lang": "en-US",
-  "dir": "ltr"
+  "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Random Selector on desktop"
+    },
+    {
+      "src": "screenshot-narrow.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Random Selector on mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Spinning Wheel",
+      "short_name": "Wheel",
+      "description": "Open the spinning wheel",
+      "url": "/wheel",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Dice Roller",
+      "short_name": "Dice",
+      "description": "Open the dice roller",
+      "url": "/dice",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Card Selector",
+      "short_name": "Cards",
+      "description": "Open the card selector",
+      "url": "/cards",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
 }
