@@ -12,7 +12,18 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git fetch:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm start)",
+      "Bash(find:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && node -c \"\"\"\"{}\"\"\"\" 2>&1 || true')",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(grep:*)",
+      "Bash(firebase --version:*)",
+      "Bash(firebase projects:list:*)",
+      "Bash(cmd /c verify-security.bat)",
+      "Bash(dir:*)",
+      "Bash(firebase login:*)",
+      "Bash(firebase login:list:*)"
     ],
     "deny": [],
     "ask": []
