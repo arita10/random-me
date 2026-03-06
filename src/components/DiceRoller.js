@@ -34,7 +34,7 @@ function DiceRoller({ theme = 'dark' }) {
   const [diceResult, setDiceResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [showHistory] = useState(false);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
 
   // ============================================
   // EFFECTS

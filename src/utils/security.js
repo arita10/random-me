@@ -43,6 +43,7 @@ export const sanitizeTextInput = (input, maxLength = 1000) => {
   }
 
   // Remove control characters
+  // eslint-disable-next-line no-control-regex
   sanitized = sanitized.replace(/[\u0000-\u001F\u007F]/g, '');
 
   return sanitized;
